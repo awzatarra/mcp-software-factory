@@ -71,6 +71,20 @@ availability.
 
 ## Phase 10.2 Handoff
 
-Phase 10.2 may invoke a governed Software Factory workflow after local health is
-confirmed. It must preserve current approvals, Git, CI, Promotion, MCP, and
+Phase 10.2 extends the validated local runner with the read-only Backend lookup
+documented below. It preserves current approvals, Git, CI, Promotion, MCP, and
 loopback-only Backend semantics.
+
+## Phase 10.2 — Backend Read Integration
+
+The manual dispatch now accepts an optional string input named `thread_id`. If
+it is empty, the job performs only the mandatory Backend health check. If it is
+present, the runner issues a read-only `GET` request to
+`http://127.0.0.1:8000/api/workflows/{thread_id}`.
+
+Successful lookup logs only `thread_id`, `project_name`, `workflow_intent`,
+`terminal_status`, `interrupted`, and `pending_operation`. A missing workflow
+fails with `Software Factory workflow not found.` No request body, tool
+arguments, files, prompts, responses, tokens, approvals, environment dump, or
+credentials are logged. The integration performs no POST, approval, GitHub
+write, Git, CI, Promotion, Repair, or LLM operation.

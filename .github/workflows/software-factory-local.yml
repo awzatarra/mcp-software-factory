@@ -2,6 +2,11 @@ name: Software Factory Local
 
 on:
   workflow_dispatch:
+    inputs:
+      thread_id:
+        description: Existing Software Factory workflow thread ID to inspect
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -60,3 +65,51 @@ jobs:
 
           Write-Host "Software Factory backend reachable."
 
+      - name: Inspect Software Factory workflow
+        if: ${{ inputs.thread_id != '' }}
+        env:
+          THREAD_ID: ${{ inputs.thread_id }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $threadId = $env:THREAD_ID.Trim()
+          if ([string]::IsNullOrWhiteSpace($threadId)) {
+            Write-Host "No workflow thread ID provided."
+            exit 0
+          }
+          $encodedThreadId = [Uri]::EscapeDataString($threadId)
+          $uri = "http://127.0.0.1:8000/api/workflows/$encodedThreadId"
+
+          try {
+            $response = Invoke-WebRequest `
+              -Method Get `
+              -Uri $uri `
+              -UseBasicParsing `
+              -TimeoutSec 10
+          }
+          catch {
+            $statusCode = $null
+            if ($null -ne $_.Exception.Response) {
+              $statusCode = [int]$_.Exception.Response.StatusCode
+            }
+            if ($statusCode -eq 404) {
+              Write-Error "Software Factory workflow not found."
+              exit 1
+            }
+            Write-Error "Software Factory workflow query failed."
+            exit 1
+          }
+
+          $workflow = $response.Content | ConvertFrom-Json
+          $interrupted = if ($null -eq $workflow.interrupted) {
+            ""
+          } else {
+            $workflow.interrupted.ToString().ToLowerInvariant()
+          }
+
+          Write-Host "Workflow:"
+          Write-Host "thread_id=$($workflow.thread_id)"
+          Write-Host "project_name=$($workflow.project_name)"
+          Write-Host "intent=$($workflow.workflow_intent)"
+          Write-Host "status=$($workflow.terminal_status)"
+          Write-Host "interrupted=$interrupted"
+          Write-Host "pending_operation=$($workflow.pending_operation)"
