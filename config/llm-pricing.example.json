@@ -1,0 +1,20 @@
+{
+  "pricing": [
+    {
+      "provider": "test",
+      "model_pattern": "test-model",
+      "model_canonical_name": "test-model",
+      "currency": "USD",
+      "input_price_per_million": "1.00",
+      "cached_input_price_per_million": "0.25",
+      "output_price_per_million": "4.00",
+      "reasoning_price_per_million": "2.00",
+      "effective_from": "2020-01-01T00:00:00Z",
+      "source_type": "test_fixture",
+      "enabled": false,
+      "priority": 0,
+      "reasoning_in_completion": true,
+      "metadata": {"environment": "tests_only"}
+    }
+  ]
+}

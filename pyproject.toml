@@ -1,0 +1,49 @@
+[project]
+name = "mcp-software-factory"
+version = "0.1.0"
+description = "Demo educativa de una Software Factory con arquitectura MCP Host-Client-Server y OpenAI Responses API."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.139,<0.140",
+    "langgraph>=1,<2",
+    "langgraph-checkpoint-sqlite>=3.0.1,<4",
+    "mcp>=1.0,<2.0",
+    "openai>=1.0",
+    "python-dotenv>=1.0",
+    "pydantic>=2.0",
+    "jsonschema>=4.0",
+    "sse-starlette>=3.4,<3.5",
+    "uvicorn>=0.51,<0.52",
+    "tzdata>=2025.2",
+]
+
+[tool.setuptools]
+packages = ["api", "api.routes", "api.services", "clients", "servers", "graph", "policies", "streaming"]
+py-modules = ["host", "tool_executor"]
+
+[project.optional-dependencies]
+observability = [
+    "opentelemetry-api>=1.30,<2",
+    "opentelemetry-sdk>=1.30,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.30,<2",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = ["-m", "not integration"]
+markers = [
+    "integration: local integration tests that may spawn real subprocesses",
+]

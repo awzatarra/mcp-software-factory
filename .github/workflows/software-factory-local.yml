@@ -1,0 +1,62 @@
+name: Software Factory Local
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: software-factory-local
+  cancel-in-progress: false
+
+jobs:
+  backend-health:
+    name: Validate local backend
+    runs-on: self-hosted
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: powershell
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Runner context
+        run: |
+          Write-Host "Repository: $env:GITHUB_REPOSITORY"
+          Write-Host "Ref: $env:GITHUB_REF"
+          Write-Host "SHA: $env:GITHUB_SHA"
+          Write-Host "Runner OS: $env:RUNNER_OS"
+
+      - name: Software Factory health
+        run: |
+          $ErrorActionPreference = "Stop"
+          $uri = "http://127.0.0.1:8000/health"
+
+          try {
+            $response = Invoke-WebRequest `
+              -Method Get `
+              -Uri $uri `
+              -UseBasicParsing `
+              -TimeoutSec 10
+          }
+          catch {
+            Write-Error "Software Factory backend is not reachable at $uri."
+            exit 1
+          }
+
+          if ($response.StatusCode -ne 200) {
+            Write-Error "Software Factory health returned HTTP $($response.StatusCode)."
+            exit 1
+          }
+
+          $health = $response.Content | ConvertFrom-Json
+          if ($health.status -ne "ok") {
+            Write-Error "Software Factory health response is not ok."
+            exit 1
+          }
+
+          Write-Host "Software Factory backend reachable."
+

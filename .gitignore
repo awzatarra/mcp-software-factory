@@ -1,0 +1,38 @@
+.env
+.env.production
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+workspace/*
+!workspace/.gitkeep
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+!data/.gitkeep
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+
+# Runtime data
+data/*
+!data/.gitkeep
+
+# Logs
+*.log
+*.stdout.log
+*.stderr.log
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# TypeScript build artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
