@@ -328,15 +328,7 @@ Implemented and validated in the project:
 - CI pipeline, gates, SHA binding, CI Repair, and audit
 - Docker Compose with persistence and a non-root Backend
 - read-only GitHub Actions with a self-hosted Windows runner
-
-| Phase | Status |
-| --- | --- |
-| Phase 6.21 — CI/CD | Closed ✅ |
-| Phase 7 — Knowledge and Planner governance | Closed ✅ |
-| Phase 8 — Advanced evaluation | Closed ✅ |
-| Phase 9 — Production readiness and deployment | Closed ✅ |
-| Phase 10 — GitHub Actions | Closed ✅ |
-
+  
 ---
 
 ## 💡 Project value
@@ -361,25 +353,12 @@ automation into an **observable, measurable, and controlled** process.
 
 ---
 
-## 📚 Documentation
-
-- [Complete project evolution](docs/project-evolution.md)
-- [Phase 6.21 — CI/CD](docs/phase-6-21-summary.md)
-- [Phase 7 — Knowledge and Planner governance](docs/phase-7-summary.md)
-- [Phase 8 — Advanced evaluation](docs/phase-8-summary.md)
-- [Phase 9 — Deployment model](docs/phase-9-deployment-model.md)
-- [Phase 9 — Docker Compose](docs/phase-9-container-deployment.md)
-- [Phase 9 — Production validation](docs/phase-9-production-validation.md)
-- [Phase 10 — GitHub Actions](docs/phase-10-github-actions.md)
-
----
-
 ## 👨‍💻 Author
 
 **Pool Rivera Molina**
 
-- GitHub: [AwZatarra](https://github.com/AwZatarra)
-- LinkedIn: [Pool Rivera Molina](https://www.linkedin.com/in/pool-rivera-molina/)
+- GitHub: [poolrivera](https://github.com/AwZatarra)
+- LinkedIn: [Pool Rivera](https://www.linkedin.com/in/pool-rivera-molina/)
 
 ---
 
@@ -403,16 +382,3 @@ npm run dev
 # 5. Check Backend health
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
-
----
-
-## ⚠️ Known limitations
-
-- The validated deployment is local Docker Compose without cloud hosting, TLS,
-  autoscaling, Kubernetes, Postgres, Redis, or high availability.
-- The self-hosted runner is interactive, Windows-based, and requires the local
-  Backend to be available.
-- SQLite is the initial durable store and requires an external operational
-  backup and restore policy.
-- Generation and evaluation quality depend on the configured model, Knowledge,
-  and pricing data.
