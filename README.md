@@ -99,13 +99,29 @@ observability, FinOps, Knowledge, evaluations, policies, and recommendations.
 
 ---
 
-## 🎥 Demo en video
+## 🎥 Recorrido en video
 
 Recorrido completo de la interfaz de **MCP Software Factory**, mostrando el flujo
 desde workflows y ejecución hasta Git, CI, evaluaciones, observabilidad,
 conocimiento y FinOps.
 
-▶️ [Ver demo completa](https://github.com/awzatarra/mcp-software-factory/releases/latest/download/mcp-software-factory-demo.webm)
+<div align="center">
+  <a href="https://www.loom.com/share/51f644eabd494a8082b55ccf0be93399">
+    <img
+      src="https://cdn.loom.com/sessions/thumbnails/51f644eabd494a8082b55ccf0be93399-da36b846ae24318d-full-play.gif"
+      alt="MCP Software Factory"
+      width="800"
+    >
+  </a>
+  <p>
+    <strong>MCP Software Factory</strong><br>
+    <a href="https://www.loom.com/share/51f644eabd494a8082b55ccf0be93399">
+      ▶️ Ver recorrido completo de MCP Software Factory
+    </a>
+  </p>
+</div>
+
+⬇️ [Descargar video completo (.webm)](https://github.com/awzatarra/mcp-software-factory/releases/latest/download/mcp-software-factory-demo.webm)
 
 **Incluye:** Workflows · Ejecución · Git · CI · Timeline · Evaluaciones · Knowledge · Observabilidad · FinOps
 
