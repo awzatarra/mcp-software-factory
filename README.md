@@ -99,6 +99,18 @@ observability, FinOps, Knowledge, evaluations, policies, and recommendations.
 
 ---
 
+## 🎥 Demo en video
+
+Recorrido completo de la interfaz de **MCP Software Factory**, mostrando el flujo
+desde workflows y ejecución hasta Git, CI, evaluaciones, observabilidad,
+conocimiento y FinOps.
+
+▶️ [Ver demo completa](https://github.com/awzatarra/mcp-software-factory/releases/latest/download/mcp-software-factory-demo.webm)
+
+**Incluye:** Workflows · Ejecución · Git · CI · Timeline · Evaluaciones · Knowledge · Observabilidad · FinOps
+
+---
+
 ## 🛠️ Technologies
 
 - **Python 3.12+**
@@ -206,21 +218,6 @@ The UI is available at:
 ```text
 http://127.0.0.1:5173
 ```
-
-## Video demo
-
-The complete interface can be toured automatically with Playwright:
-
-```bash
-cd frontend
-npm run demo:tour
-```
-
-The script performs a read-only tour and generates a `.webm` video in
-`frontend/demo-videos/`. The backend and frontend must be running before the
-tour starts.
-
----
 
 ## ✅ How to test it quickly
 
