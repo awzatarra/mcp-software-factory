@@ -1,211 +1,304 @@
-# MCP Software Factory
+# 🤖 MCP Software Factory
 
-## Descripción
+A governed Software Factory that transforms a **software requirement into
+validated code ready for Promotion**.
 
-Demo educativa y funcional de una Software Factory gobernada, construida con
-Python, FastAPI, LangGraph, MCP, OpenAI Responses API y React. Convierte un
-requerimiento en un proyecto verificable mediante planificación estructurada,
-implementación, pruebas y reparación, Git, CI y Promotion, con aprobaciones
-humanas, persistencia durable y trazabilidad de extremo a extremo.
+It plans, implements, tests, and repairs projects using **LangGraph + MCP +
+OpenAI**, while adding durable controls for approvals, Git, CI, observability,
+FinOps, knowledge, and agent evaluation.
 
-El runtime LangGraph es la ruta principal para los flujos durables. La
-orquestación manual se conserva como compatibilidad mediante configuración.
+In short: this project explores how to build an agentic software factory that is
+**useful, auditable, and governable**, not merely capable of generating code.
 
-## Arquitectura
+[Read the complete project evolution](docs/project-evolution.md).
+
+---
+
+## 🚀 What it does
+
+The main flow can already:
+
+- receive a software requirement from the CLI, API, or UI
+- analyze it and produce a structured plan
+- validate the plan contract, executability, dependencies, risk, and quality
+- generate an implementation with governed paths and dependencies
+- create an isolated environment for each project
+- run tests and repair functional failures within bounded limits
+- retrieve durable memory through Knowledge MCP and RAG
+- request human approval before sensitive side effects
+- create Git branches and commits with provenance
+- execute a CI pipeline bound to the exact commit SHA
+- evaluate environment, build, test, lint, and package gates
+- enable manual Promotion when CI evidence is valid
+- persist checkpoints, events, and interrupts for recovery
+- stream real-time events through SSE
+- observe traces, spans, metrics, errors, and agent activity
+- record LLM usage, costs, pricing, reservations, and budgets
+- evaluate workflows and agents with hybrid metrics and LLM-as-a-Judge
+- run locally with Docker Compose
+- inspect the Backend from GitHub Actions through a self-hosted runner
+
+---
+
+## ✨ Technical differentiators
+
+- combines **LLMs + deterministic rules** without granting unrestricted
+  authority to the model
+- uses a **Parent Graph + subgraphs with private state** for Planning,
+  Implementation, and TestingRepair
+- coordinates specialists through a **Supervisor with explicit handoffs**
+- implements **durable human-in-the-loop** with checkpoints and interrupts
+- supports **Replay and Fork** without changing the original historical branch
+- separates proposal, approval, and execution for every side effect
+- keeps MCP Servers private and accessible only through the Backend
+- integrates **Knowledge MCP + RAG + workflow learning** with provenance
+- treats observability and FinOps as first-class capabilities
+- binds Git, CI, and Promotion to the **exact SHA**
+- keeps recommendations, experiments, and LLM-as-a-Judge as advisory evidence
+- performs neither automatic policy application nor automatic code Promotion
+
+This is not simply an LLM-powered project generator. It is a foundation for
+exploring **multi-agent orchestration, governance, traceability, and software
+delivery** from end to end.
+
+---
+
+## 🧭 Architecture
 
 ```text
-Usuario / UI React / Host CLI
-            |
-            v
-      FastAPI + LangGraph
-            |
-            +--> PlanningSubgraph
-            +--> ImplementationSubgraph
-            +--> TestingRepairSubgraph
-            +--> Supervisor y approvals
-            |
-            +--> MCP Software Factory
-            +--> MCP Filesystem
-            +--> MCP Testing
-            +--> MCP Knowledge
-            +--> MCP Git
-            |
-            +--> SQLite durable + workspace + repositorios Git
+Requirement
+     |
+     v
+FastAPI / Host / UI
+     |
+     v
+LangGraph / SoftwareFactoryGraph
+     |
+     v
+Supervisor
+     |
+     +--> PlanningSubgraph
+     +--> ImplementationSubgraph
+     `--> TestingRepairSubgraph
+     |
+     v
+MCP Client / Manager
+     |
+     +--> Software Factory MCP
+     +--> Filesystem MCP
+     +--> Testing MCP
+     +--> Knowledge MCP
+     `--> Git MCP
+     |
+     v
+Git --> CI --> Promotion --> Finalize
 ```
 
-Los MCP Servers se ejecutan como procesos privados por `stdio`. El Backend es
-la única frontera autorizada para orquestarlos; el Frontend nunca accede
-directamente al workspace, Git, stores, secretos ni MCPs.
+SQLite and specialized stores persist workflows, checkpoints, events, Git, CI,
+observability, FinOps, Knowledge, evaluations, policies, and recommendations.
 
-## Capacidades principales
+---
 
-- Planning con contratos estructurados, validación de ejecutabilidad, riesgo,
-  calidad y refinement adaptativo.
-- Implementación segura con paths relativos, dependencias gobernadas y
-  aislamiento por proyecto.
-- Testing y Repair con entornos virtuales propios, clasificación de fallos,
-  límites de reintentos y evidencia antes/después.
-- Git gobernado con ramas por workflow, commits auditables y working tree
-  protegido.
-- CI durable con gates de entorno, build, test y lint, reparación controlada y
-  vinculación exacta al commit.
-- Promotion manual con aprobación, revalidación y merge controlado.
-- Persistencia SQLite para checkpoints, eventos, approvals, CI, Git,
-  observabilidad, evaluación, Knowledge y FinOps.
-- Replay, Fork, interrupts y recovery durable después de reinicios.
-- API HTTP/SSE y UI React para operación en tiempo real.
+## 🛠️ Technologies
 
-## Flujo principal
+- **Python 3.12+**
+- **FastAPI**
+- **LangGraph**
+- **Model Context Protocol (MCP)**
+- **OpenAI Responses API**
+- **Pydantic**
+- **SQLite**
+- **Server-Sent Events (SSE)**
+- **React 19 + TypeScript + Vite**
+- **Zustand**
+- **Git**
+- **pytest**
+- **Docker + Docker Compose**
+- **GitHub Actions**
+
+---
+
+## 📦 How to install it
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/awzatarra/mcp-software-factory.git
+cd mcp-software-factory
+```
+
+### 2. Install the Backend
+
+```bash
+uv sync --dev
+```
+
+You can also use an equivalent Python 3.12+ environment and install the
+dependencies declared in `pyproject.toml`.
+
+### 3. Configure the environment
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Minimum configuration:
+
+```env
+OPENAI_API_KEY=
+OPENAI_MODEL=
+USE_LANGGRAPH=false
+MCP_FACTORY_DEBUG=false
+LANGGRAPH_CHECKPOINT_DB=
+WORKFLOW_EVENT_STORE_PATH=data/workflow-events.sqlite
+API_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+`.env.example` contains the complete contract for MCP timeouts, Knowledge,
+observability, FinOps, evaluation, alerts, notifications, and CI. Never commit
+API keys, tokens, credentials, `.env`, or `.env.production`.
+
+### 4. Install the Frontend
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+---
+
+## ▶️ How to run it
+
+### Interactive Host
+
+```bash
+uv run python host.py
+```
+
+Enable the durable runtime with:
+
+```env
+USE_LANGGRAPH=true
+```
+
+### FastAPI API
+
+```powershell
+.\.venv\Scripts\uvicorn.exe api.app:app --host 127.0.0.1 --port 8000
+```
+
+The API is available at:
 
 ```text
-Requerimiento
-  -> Planning
-  -> Implementation
-  -> Testing / Repair
-  -> Git
-  -> CI
-  -> Promotion
-  -> Finalize
+http://127.0.0.1:8000
 ```
 
-El Supervisor coordina traspasos explícitos entre especialistas. Las operaciones
-sensibles se interrumpen de forma durable para solicitar aprobación y se
-reanundan desde el checkpoint vigente, sin repetir etapas completadas.
+### React UI
 
-## Gobernanza
+```bash
+cd frontend
+npm run dev
+```
 
-- Aprobaciones humanas para escritura, preparación de entornos, tests y
-  operaciones Git sensibles.
-- Git gobernado mediante allowlists, provenance, fingerprints y políticas de
-  dirty working tree compartidas.
-- CI gates vinculados al SHA exacto; un resultado stale no habilita Promotion.
-- Promotion manual y sin autoaprobación.
-- Recomendaciones de evaluación y políticas en modo advisory: no existe
-  auto-apply de cambios gobernados.
-- Rutas, comandos, dependencias y argumentos de tools validados antes de
-  ejecutar.
+The UI is available at:
 
-## Observabilidad y evaluación
+```text
+http://127.0.0.1:5173
+```
 
-La plataforma persiste traces, spans, eventos y relaciones entre workflows,
-subgrafos, agentes, llamadas LLM, MCP tools, approvals, tests, CI y Git. La
-política de exclusión evita que el polling de la UI contamine métricas locales;
-los errores relevantes pueden conservarse de forma configurable.
+---
 
-FinOps registra usage reportado por el proveedor, pricing versionado, costes,
-reservas y budgets. `usage_source` y `cost_source` son independientes, y un
-`hard_limit` aplicable bloquea antes de invocar al proveedor.
+## ✅ How to test it quickly
 
-La evaluación avanzada combina métricas deterministas, heurísticas y
-LLM-as-a-Judge. Incluye rubrics versionadas, baselines, detección de regresiones,
-RCA, desempeño de agentes y recomendaciones gobernadas. Las evaluaciones
-históricas permanecen ligadas a su versión original y no se recalculan
-automáticamente.
+### 1. Check Backend health
 
-## Memoria y conocimiento
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
 
-Knowledge MCP es la frontera exclusiva de RAG y aprendizaje cross-workflow.
-Mantiene aislamiento por proyecto, provenance, sanitización, deduplicación y
-estados durables de indexación. Planning, Implementation, QA y Repair consultan
-contexto limitado y no confiable; un fallo de lectura degrada el contexto sin
-bloquear el workflow, mientras las escrituras son fail-closed.
+Expected response:
 
-## Docker y despliegue local
+```json
+{"status":"ok"}
+```
 
-El despliegue de producción local separa Frontend y Backend con Docker Compose.
-Los MCPs permanecen privados dentro del Backend, que se ejecuta como usuario
-non-root. Los volúmenes nombrados conservan `workspace/` y `data/` después de
-`restart` y `down`/`up`; `docker compose down -v` los elimina deliberadamente.
+### 2. Create a workflow
+
+```powershell
+$body = @{
+    request = 'Create a FastAPI project with GET /health and pytest tests.'
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri 'http://127.0.0.1:8000/api/workflows' `
+  -ContentType 'application/json' `
+  -Body $body
+```
+
+### 3. Open the UI
+
+```text
+http://127.0.0.1:5173
+```
+
+From the UI, you can follow events, resolve approvals, explore the project,
+inspect Git and CI, and review observability, FinOps, and evaluations.
+
+---
+
+## 🐳 Docker Compose
+
+The local deployment separates Frontend and Backend, keeps MCPs private, and
+uses named volumes for `workspace/` and `data/`. The Backend runs as a non-root
+user.
 
 ```powershell
 Copy-Item .env.production.example .env.production
 docker compose --env-file .env.production config
 docker compose --env-file .env.production build
 docker compose --env-file .env.production up -d
+```
+
+Validation:
+
+```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-WebRequest http://127.0.0.1:5173/health -UseBasicParsing
 ```
 
-Documentación de despliegue:
+`docker compose down` preserves the volumes. `docker compose down -v` deletes
+them intentionally.
 
-- [Modelo de despliegue](docs/phase-9-deployment-model.md)
-- [Despliegue con contenedores](docs/phase-9-container-deployment.md)
-- [Validación de producción](docs/phase-9-production-validation.md)
-- [Resumen de Fase 9](docs/phase-9-summary.md)
+---
 
-## GitHub Actions
+## 🔐 Governance and security
 
-La integración usa un self-hosted runner Windows instalado fuera del repositorio
-y un workflow manual `workflow_dispatch`. GitHub Actions conecta el runner con
-el Backend local en `127.0.0.1:8000`; `thread_id` es opcional y permite consultar
-un workflow existente.
+- human approvals for writes, environment preparation, tests, and Git
+- allowlists for commands, tools, dependencies, and editable fields
+- rejection of absolute paths and traversal outside the workspace
+- private MCP Servers over `stdio`
+- Testing and Git subprocesses isolated from MCP transport
+- secrets and sensitive content excluded or redacted from observability
+- `hard_limit` budgets enforced before calling the provider
+- Git and CI evidence bound to the current commit
+- Promotion separated from CI and never automatically approved
+- recommendations and experiment results never applied automatically
 
-La integración actual es read-only: usa `contents: read`, no contiene secretos,
-no realiza writes ni expone públicamente el Backend. Su instalación, ciclo de
-vida y validación E2E están en
-[GitHub Actions con runner local](docs/phase-10-github-actions.md).
+---
 
-## Cómo ejecutar localmente
-
-Requiere Python 3.12+ y Node.js para el Frontend.
-
-```powershell
-uv sync --dev
-Copy-Item .env.example .env
-uv run python host.py
-```
-
-API:
-
-```powershell
-.\.venv\Scripts\uvicorn.exe api.app:app --host 127.0.0.1 --port 8000
-```
-
-Frontend:
-
-```powershell
-cd frontend
-Copy-Item .env.example .env
-npm install
-npm run dev
-```
-
-La UI queda en `http://127.0.0.1:5173` y la API en
-`http://127.0.0.1:8000`.
-
-## Variables de entorno
-
-Usa `.env.example` para desarrollo y `.env.production.example` para Docker
-Compose. No confirmes `.env`, `.env.production`, API keys, tokens ni
-credenciales.
-
-Variables principales:
-
-```env
-OPENAI_API_KEY=
-OPENAI_MODEL=
-USE_LANGGRAPH=true
-MCP_FACTORY_DEBUG=false
-LANGGRAPH_CHECKPOINT_DB=
-WORKFLOW_EVENT_STORE_PATH=
-WORKSPACE_ROOT=
-API_CORS_ORIGINS=http://127.0.0.1:5173
-```
-
-Los templates contienen la configuración completa para MCP timeouts,
-Knowledge, observabilidad, notificaciones, FinOps, CI y despliegue.
-
-## Pruebas
+## 🧪 Tests
 
 Backend:
 
-```powershell
+```bash
 uv run pytest
 ```
 
 Frontend:
 
-```powershell
+```bash
 cd frontend
 npm test
 npm run typecheck
@@ -213,46 +306,113 @@ npm run lint
 npm run build
 ```
 
-Las pruebas usan workspaces temporales y mocks; no requieren una API key ni
-deben efectuar llamadas pagadas.
+Tests use mocks and temporary workspaces. They do not require an API key and
+must not perform paid calls.
 
-## Seguridad
+---
 
-- El workspace rechaza paths absolutos, traversal y acceso fuera de su raíz.
-- Los Testing y Git MCP no aceptan comandos arbitrarios y aíslan subprocesses
-  del transporte MCP `stdio`.
-- MCP Servers, SQLite, workspace y repositorios Git no se exponen directamente.
-- Prompts, respuestas completas, archivos, credenciales y headers sensibles se
-  redactan o no se persisten en observabilidad.
-- El Frontend recibe únicamente configuración pública.
+## 📌 Current status
 
-## Estado del roadmap
+Implemented and validated in the project:
 
-| Fase | Estado |
+- durable SoftwareFactoryGraph with a Parent Graph and Supervisor
+- Planning, Implementation, and TestingRepair as private subgraphs
+- approvals, checkpoints, Replay, Fork, and recovery
+- API, SSE, UI, and secure project explorer
+- observability, metrics, alerts, and notifications
+- LLM usage and costs, pricing, reservations, and budgets
+- Knowledge MCP, RAG, and cross-workflow learning
+- Planner calibration, policy governance, rollout, and experiments
+- LLM-as-a-Judge, hybrid evaluation, agent performance, and RCA
+- governed Git, approved commits, and Promotion
+- CI pipeline, gates, SHA binding, CI Repair, and audit
+- Docker Compose with persistence and a non-root Backend
+- read-only GitHub Actions with a self-hosted Windows runner
+
+| Phase | Status |
 | --- | --- |
-| Fase 6.21 — CI/CD | Cerrada ✅ |
-| Fase 7 — Memoria y conocimiento | Cerrada ✅ |
-| Fase 8 — Evaluación avanzada | Cerrada ✅ |
-| Fase 9 — Production Readiness & Deployment | Cerrada ✅ |
-| Fase 10 — GitHub Actions Integration | Cerrada ✅ |
+| Phase 6.21 — CI/CD | Closed ✅ |
+| Phase 7 — Knowledge and Planner governance | Closed ✅ |
+| Phase 8 — Advanced evaluation | Closed ✅ |
+| Phase 9 — Production readiness and deployment | Closed ✅ |
+| Phase 10 — GitHub Actions | Closed ✅ |
 
-Documentación de cierre:
+---
 
-- [Fase 6.21](docs/phase-6-21-summary.md)
-- [Fase 7](docs/phase-7-summary.md)
-- [Fase 8](docs/phase-8-summary.md)
-- [Fase 9](docs/phase-9-summary.md)
-- [Fase 10](docs/phase-10-github-actions.md)
+## 💡 Project value
 
-## Limitaciones conocidas
+MCP Software Factory demonstrates practical experience in:
 
-- El despliegue validado es Docker Compose local, sin cloud, TLS, autoscaling,
-  Kubernetes, Postgres, Redis ni alta disponibilidad.
-- El self-hosted runner es Windows, interactivo y depende de que el Backend
-  local ya esté disponible.
-- SQLite es la fuente durable inicial y requiere una política operativa externa
-  de backup y restore.
-- La calidad de generación y evaluación LLM depende del modelo y pricing
-  configurados.
-- Los canales externos, instalaciones de dependencias y llamadas al proveedor
-  requieren conectividad saliente y conservan sus gates existentes.
+- multi-agent architecture with LangGraph
+- MCP Server design and consumption
+- human-in-the-loop systems and durable recovery
+- governed software generation, testing, and repair
+- RAG and cross-workflow memory
+- observability and agent evaluation
+- LLMOps and FinOps with budgets
+- Git, CI, and Promotion integration
+- APIs and real-time streaming
+- an operational React frontend
+- local containerization and persistence
+- secure GitHub Actions integration
+
+It is not just “AI generating code.” It is a platform designed to turn software
+automation into an **observable, measurable, and controlled** process.
+
+---
+
+## 📚 Documentation
+
+- [Complete project evolution](docs/project-evolution.md)
+- [Phase 6.21 — CI/CD](docs/phase-6-21-summary.md)
+- [Phase 7 — Knowledge and Planner governance](docs/phase-7-summary.md)
+- [Phase 8 — Advanced evaluation](docs/phase-8-summary.md)
+- [Phase 9 — Deployment model](docs/phase-9-deployment-model.md)
+- [Phase 9 — Docker Compose](docs/phase-9-container-deployment.md)
+- [Phase 9 — Production validation](docs/phase-9-production-validation.md)
+- [Phase 10 — GitHub Actions](docs/phase-10-github-actions.md)
+
+---
+
+## 👨‍💻 Author
+
+**Pool Rivera Molina**
+
+- GitHub: [AwZatarra](https://github.com/AwZatarra)
+- LinkedIn: [Pool Rivera Molina](https://www.linkedin.com/in/pool-rivera-molina/)
+
+---
+
+## ⚡ Quickstart
+
+```powershell
+# 1. Install Backend dependencies
+uv sync --dev
+
+# 2. Create local configuration
+Copy-Item .env.example .env
+
+# 3. Start the API
+.\.venv\Scripts\uvicorn.exe api.app:app --host 127.0.0.1 --port 8000
+
+# 4. In another terminal, start the UI
+cd frontend
+npm install
+npm run dev
+
+# 5. Check Backend health
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+---
+
+## ⚠️ Known limitations
+
+- The validated deployment is local Docker Compose without cloud hosting, TLS,
+  autoscaling, Kubernetes, Postgres, Redis, or high availability.
+- The self-hosted runner is interactive, Windows-based, and requires the local
+  Backend to be available.
+- SQLite is the initial durable store and requires an external operational
+  backup and restore policy.
+- Generation and evaluation quality depend on the configured model, Knowledge,
+  and pricing data.
