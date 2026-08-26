@@ -51,6 +51,8 @@ export function App() {
       <Route path="/evaluations/baselines" element={<EvaluationsPage />} />
       <Route path="/evaluations/regressions" element={<EvaluationsPage />} />
       <Route path="/evaluations/recommendations" element={<EvaluationsPage />} />
+      <Route path="/evaluations/experiments" element={<EvaluationsPage />} />
+      <Route path="/evaluations/ci" element={<EvaluationsPage />} />
       <Route path="/knowledge" element={<KnowledgePage />} />
       <Route path="/knowledge/candidates" element={<KnowledgePage />} />
       <Route path="/knowledge/sources" element={<KnowledgePage />} />

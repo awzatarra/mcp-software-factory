@@ -8,7 +8,7 @@ import {
   LoaderCircle,
   RefreshCw,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   projectArchiveUrl,
@@ -61,6 +61,7 @@ export function ProjectExplorer({
   const { loadProject, loadFile } = useWorkflowProject(threadId, true, events);
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const copyResetTimeout = useRef<number | null>(null);
   const selectedNode = useMemo(
     () => tree && selectedPath ? findNode(tree.root, selectedPath) : null,
     [selectedPath, tree],
@@ -79,6 +80,12 @@ export function ProjectExplorer({
     }
   }, [loadFile, selectedFile, tree]);
 
+  useEffect(() => () => {
+    if (copyResetTimeout.current !== null) {
+      window.clearTimeout(copyResetTimeout.current);
+    }
+  }, []);
+
   const selectFile = (node: ProjectFileNode) => {
     onSelectFile(node.path);
     useProjectExplorerStore.getState().select(node.path);
@@ -90,7 +97,13 @@ export function ProjectExplorer({
       await navigator.clipboard.writeText(content.content);
       setCopied(true);
       setCopyFailed(false);
-      window.setTimeout(() => setCopied(false), 1_500);
+      if (copyResetTimeout.current !== null) {
+        window.clearTimeout(copyResetTimeout.current);
+      }
+      copyResetTimeout.current = window.setTimeout(() => {
+        setCopied(false);
+        copyResetTimeout.current = null;
+      }, 1_500);
     } catch {
       setCopyFailed(true);
     }

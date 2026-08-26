@@ -207,6 +207,19 @@ The UI is available at:
 http://127.0.0.1:5173
 ```
 
+## Video demo
+
+The complete interface can be toured automatically with Playwright:
+
+```bash
+cd frontend
+npm run demo:tour
+```
+
+The script performs a read-only tour and generates a `.webm` video in
+`frontend/demo-videos/`. The backend and frontend must be running before the
+tour starts.
+
 ---
 
 ## ✅ How to test it quickly

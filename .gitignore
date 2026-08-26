@@ -16,6 +16,8 @@ data/*.sqlite-wal
 frontend/node_modules/
 frontend/dist/
 frontend/coverage/
+frontend/demo-videos/
+*.webm
 
 # Runtime data
 data/*
