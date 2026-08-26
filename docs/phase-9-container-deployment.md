@@ -1,34 +1,35 @@
-# Phase 9.2 - Container Deployment
+# Fase 9.2 - Despliegue con contenedores
 
-## Services
+## Servicios
 
-- `frontend`: multi-stage Vite/React build served by Nginx.
-- `backend`: FastAPI, LangGraph, WorkflowRunner, Git, CI, and governance.
-- MCP Servers: the existing planning, filesystem, testing, knowledge, and Git
-  FastMCP servers run as private `stdio` child processes inside `backend`.
-  Their current transport has no network listener, so Compose does not expose or
-  emulate MCP ports.
+- `frontend`: build multietapa de Vite/React servido por Nginx.
+- `backend`: FastAPI, LangGraph, WorkflowRunner, Git, CI y gobernanza.
+- MCP Servers: los servidores FastMCP existentes de planning, filesystem,
+  testing, knowledge y Git se ejecutan como procesos hijo privados por `stdio`
+  dentro de `backend`. Su transporte no abre listeners de red, por lo que
+  Compose no publica ni emula puertos MCP.
 
-## Network
+## Red
 
-Both services join `mcp-software-factory-private`. Local host access is limited
-to Frontend on `127.0.0.1:5173` and Backend API on `127.0.0.1:8000`. MCPs share
-the Backend container namespace and are reachable only by its MCP clients. TLS
-and an external reverse proxy are outside this phase.
+Ambos servicios se unen a `mcp-software-factory-private`. El acceso desde el
+host local se limita al Frontend en `127.0.0.1:5173` y la API del Backend en
+`127.0.0.1:8000`. Los MCPs comparten el namespace del contenedor Backend y solo
+son accesibles por sus clientes MCP. TLS y un reverse proxy externo quedan
+fuera de esta fase.
 
-## Volumes
+## Volúmenes
 
-- `mcp-software-factory-workspace` mounts at `/app/workspace`.
-- `mcp-software-factory-data` mounts at `/app/data`.
+- `mcp-software-factory-workspace` se monta en `/app/workspace`.
+- `mcp-software-factory-data` se monta en `/app/data`.
 
-They are named volumes and survive `docker compose down` and Backend replacement.
-`docker compose down -v` intentionally deletes them and must not be used when
-state must be preserved.
+Son volúmenes nombrados y sobreviven a `docker compose down` y al reemplazo del
+Backend. `docker compose down -v` los elimina deliberadamente y no debe usarse
+cuando el estado deba preservarse.
 
-## Environment
+## Entorno
 
-Create a local, ignored production file and set a real secret through the local
-environment or secret-management mechanism:
+Crea un archivo local ignorado y configura el secreto real mediante el entorno
+local o el mecanismo de gestión de secretos:
 
 ```powershell
 Copy-Item .env.production.example .env.production
@@ -42,29 +43,31 @@ Copy-Item .env.production.example .env.production
 # API_CORS_ORIGINS=http://127.0.0.1:5173
 ```
 
-Compose maps `WORKSPACE_ROOT`, checkpoint storage, workflow events, CORS, and
-the Frontend build-time `VITE_API_BASE_URL` to container-safe paths and URLs.
-Run Compose with `--env-file .env.production` so build arguments use the same
-public URLs. No secret is copied into either image.
+Compose mapea `WORKSPACE_ROOT`, el almacenamiento de checkpoints, eventos de
+workflow, CORS y `VITE_API_BASE_URL` del build del Frontend a paths y URLs aptos
+para contenedores. Usa `--env-file .env.production` para que los argumentos de
+build compartan las mismas URLs públicas. Ningún secreto se copia a las
+imágenes.
 
-## Build
+## Construcción
 
 ```powershell
 docker compose --env-file .env.production config
 docker compose --env-file .env.production build
 ```
 
-## Start
+## Inicio
 
 ```powershell
 docker compose --env-file .env.production up -d
 docker compose ps
 ```
 
-Open `http://127.0.0.1:5173`. The browser uses the Backend URL embedded during
-the Frontend build, which defaults to `http://127.0.0.1:8000` for local use.
+Abre `http://127.0.0.1:5173`. El navegador usa la URL del Backend incorporada
+durante el build, cuyo valor local predeterminado es
+`http://127.0.0.1:8000`.
 
-## Health Validation
+## Validación de salud
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
@@ -72,12 +75,12 @@ Invoke-WebRequest http://127.0.0.1:5173/health -UseBasicParsing
 docker compose ps
 ```
 
-Backend startup connects all critical MCP child processes before Uvicorn becomes
-ready. A startup failure is visible in `docker compose logs backend`. A
-non-destructive MCP check can use existing workflow/resource inspection paths;
-no paid LLM, Git mutation, or CI execution is required.
+El inicio del Backend conecta todos los procesos hijo MCP críticos antes de que
+Uvicorn esté ready. Un fallo aparece en `docker compose logs backend`. Las
+comprobaciones no destructivas pueden usar las rutas existentes de inspección;
+no requieren llamadas LLM pagadas, mutaciones Git ni CI.
 
-## Persistence Validation
+## Validación de persistencia
 
 ```powershell
 docker compose exec backend python -c "from pathlib import Path; Path('/app/workspace/.phase-9-persistence').write_text('workspace')"
@@ -89,19 +92,20 @@ docker compose --env-file .env.production up -d
 docker compose exec backend python -c "from pathlib import Path; assert Path('/app/workspace/.phase-9-persistence').exists(); assert Path('/app/data/.phase-9-persistence').exists()"
 ```
 
-Remove the two marker files after validation. Named volumes remain intact.
+Elimina los dos archivos de marca después de validar. Los volúmenes nombrados
+permanecen intactos.
 
-## Known Limitations
+## Limitaciones conocidas
 
-This local deployment has no HTTPS, remote deployment, external load balancer,
-autoscaling, Postgres, Redis, external observability stack, or backup automation.
-Frontend configuration is embedded at build time. Project-generated dependency
-installation still requires outbound network access and its existing approval.
-The Backend image includes Python and Git for the current primary workflow;
-Node or .NET CI workloads require a derived image with those existing toolchains.
+Este despliegue local no incluye HTTPS, despliegue remoto, load balancer,
+autoscaling, Postgres, Redis, stack externo de observabilidad ni backup
+automático. La configuración del Frontend se incorpora durante el build. La
+instalación de dependencias de proyectos requiere acceso saliente y su approval
+existente. La imagen Backend incluye Python y Git; workloads CI de Node o .NET
+requieren una imagen derivada con esos toolchains.
 
-## Phase 9.3 Handoff
+## Siguiente fase 9.3
 
-Phase 9.3 may add a remote deployment target, managed secrets, concrete backup
-procedures, and platform health/readiness integration without changing MCP,
-Planning, approval, Git, CI, or Promotion semantics.
+La Fase 9.3 valida build, salud, conectividad MCP, persistencia, recovery tras
+reinicio y controles mínimos de seguridad, sin cambiar semánticas de MCP,
+Planning, approvals, Git, CI ni Promotion.

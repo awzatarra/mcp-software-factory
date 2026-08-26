@@ -1,51 +1,56 @@
-# Phase 9 Summary
+# Resumen de la Fase 9
 
-## 9.1 Deployment Model
+## 9.1 Modelo de despliegue
 
-Defined the public Frontend/Backend boundary, private MCP boundary, persistent
-workspace and stores, environment contract, health expectations, and security
-invariants without changing runtime behavior.
+Se definieron la frontera pública Frontend/Backend, la frontera MCP privada, el
+workspace y stores persistentes, el contrato de entorno, las verificaciones de
+salud y los invariantes de seguridad sin cambiar comportamiento runtime.
 
-## 9.2 Containerization
+## 9.2 Contenedores
 
-Added reproducible Backend and Frontend images, a private Compose network,
-loopback-only host ports, healthchecks, non-root Backend execution, and named
-volumes for `/app/workspace` and `/app/data`. Existing stdio MCP Servers remain
-private child processes inside Backend.
+Se agregaron imágenes reproducibles de Backend y Frontend, una red Compose
+privada, puertos host limitados a loopback, verificaciones de salud, ejecución
+non-root del Backend y volúmenes nombrados para `/app/workspace` y `/app/data`.
+Los MCP Servers por `stdio` permanecen como procesos hijo privados del Backend.
 
-## 9.3 Validation
+## 9.3 Validación
 
-Validated a no-cache build, healthy startup, MCP discovery, a non-paid workflow
-through API/LangGraph/Filesystem MCP, durable checkpoints and events, volume
-persistence across restart and down/up, and container/image security controls.
+Se validaron build sin caché, inicio saludable, descubrimiento MCP, un workflow
+sin coste por API/LangGraph/Filesystem MCP, checkpoints y eventos durables,
+persistencia de volúmenes después de restart y down/up, y controles de seguridad
+de contenedores e imágenes.
 
-## Architecture
+## Arquitectura
 
-Browser -> Frontend -> Backend API / LangGraph -> private stdio MCP Servers.
-Frontend and Backend share a private Compose network; MCPs have no network
-listener or published port.
+```text
+Navegador -> Frontend -> Backend API / LangGraph -> MCP Servers privados por stdio
+```
 
-## Persistent Data
+Frontend y Backend comparten una red Compose privada; los MCPs no tienen
+listener de red ni puertos publicados.
 
-`mcp-software-factory-workspace` stores generated projects and Git state.
-`mcp-software-factory-data` stores LangGraph checkpoints, workflow events, CI,
-Git audit, governance, evaluation, observability, Knowledge, and FinOps SQLite
-data.
+## Datos persistentes
 
-## Security Invariants
+`mcp-software-factory-workspace` almacena proyectos generados y estado Git.
+`mcp-software-factory-data` almacena checkpoints LangGraph, eventos, CI,
+auditoría Git, gobernanza, evaluación, observabilidad, Knowledge y datos SQLite
+de FinOps.
 
-Backend is non-root, containers are not privileged, the Docker socket and host
-filesystem are not mounted, MCPs remain private, and secrets are injected at
-runtime rather than copied into images or the Frontend bundle.
+## Invariantes de seguridad
 
-## Known Limitations
+Backend es non-root, los contenedores no son privilegiados, no se montan el
+socket Docker ni el filesystem del host, los MCPs permanecen privados y los
+secretos se inyectan en runtime en lugar de copiarse a imágenes o al bundle del
+Frontend.
 
-The deployment is local Compose only. It has no cloud provider, TLS/domain,
-autoscaling, Kubernetes, remote CD, Postgres migration, Redis, external secrets
-manager, or external observability stack.
+## Limitaciones conocidas
 
-## Final Status
+El despliegue es únicamente Compose local. No incorpora proveedor cloud,
+TLS/dominio, autoscaling, Kubernetes, CD remoto, migración a Postgres, Redis,
+secret manager externo ni stack externo de observabilidad.
 
-Phase 9 is closed. Its deployment model, local containerization, persistence,
-recovery, health, private MCP connectivity, and minimum hardening have been
-implemented and validated without adding runtime capabilities.
+## Estado final
+
+La Fase 9 está cerrada. Su modelo de despliegue, containerización local,
+persistencia, recovery, salud, conectividad MCP privada y hardening mínimo
+fueron implementados y validados sin agregar capacidades runtime adicionales.

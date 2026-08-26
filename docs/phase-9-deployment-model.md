@@ -1,128 +1,128 @@
-# Phase 9.1 - Deployment Model
+# Fase 9.1 - Modelo de despliegue
 
-## Architecture
+## Arquitectura
 
 ```text
 Internet
    |
    v
-Frontend (public)
+Frontend (público)
    |
    v
-Backend API / LangGraph (public API)
-   |-- MCP Servers (private)
-   |-- Persistent workspace
-   |-- Git repositories
-   `-- Persistent stores
+Backend API / LangGraph (API pública)
+   |-- MCP Servers (privados)
+   |-- Workspace persistente
+   |-- Repositorios Git
+   `-- Stores persistentes
 ```
 
-Frontend and Backend are separate services. Backend, LangGraph, and
-`WorkflowRunner` form the main execution service. MCP Servers run as private
-processes or services reachable only by Backend; they are never Internet-facing.
+Frontend y Backend son servicios separados. Backend, LangGraph y
+`WorkflowRunner` forman el servicio principal de ejecución. Los MCP Servers se
+ejecutan como procesos o servicios privados accesibles únicamente por Backend;
+nunca se exponen a Internet.
 
-## Components
+## Componentes
 
-- **Frontend:** the existing Vite/React application. It calls Backend API only
-  and has no direct access to MCPs, workspace, Git, stores, or Backend secrets.
-- **Backend:** FastAPI, LangGraph, workflow execution, approvals, Git, CI,
-  evaluation, and governance. It is the only component authorized to
-  orchestrate MCP Servers.
-- **MCP Servers:** the existing private capabilities on an internal transport or
-  network. Phase 9.1 adds no MCPs and changes no MCP contract.
-- **Workspace:** persistent storage for generated projects, their Git
-  repositories, and project-local environments such as `.venv` when applicable.
-- **Stores:** the existing durable SQLite stores on persistent storage. Postgres
-  is a possible future evolution, not a Phase 9.1 requirement.
+- **Frontend:** aplicación Vite/React existente. Solo llama a la API del Backend
+  y no accede directamente a MCPs, workspace, Git, stores ni secretos.
+- **Backend:** FastAPI, LangGraph, ejecución de workflows, approvals, Git, CI,
+  evaluación y gobernanza. Es el único componente autorizado para orquestar MCP
+  Servers.
+- **MCP Servers:** capacidades privadas existentes sobre transporte o red
+  interna. La Fase 9.1 no agrega MCPs ni cambia contratos MCP.
+- **Workspace:** almacenamiento persistente para proyectos generados,
+  repositorios Git y entornos locales como `.venv` cuando corresponda.
+- **Stores:** bases SQLite durables existentes sobre almacenamiento persistente.
+  Postgres es una posible evolución futura, no un requisito de la Fase 9.1.
 
-## Public vs Private
+## Público y privado
 
-| Component | Exposure |
+| Componente | Exposición |
 | --- | --- |
-| Frontend | Public HTTP service |
-| Backend | Public governed API |
-| MCP Servers | Private; Backend access only |
-| Workspace and Git | Private; no direct HTTP or shell access |
-| SQLite stores | Private persistent storage |
+| Frontend | Servicio HTTP público |
+| Backend | API pública gobernada |
+| MCP Servers | Privados; acceso exclusivo del Backend |
+| Workspace y Git | Privados; sin acceso HTTP ni shell directo |
+| Stores SQLite | Almacenamiento persistente privado |
 
-The public boundary remains the governed Backend API. Filesystem and Git
-mutations remain available only through their existing validation, policy, and
-approval flows.
+La frontera pública sigue siendo la API gobernada del Backend. Las mutaciones
+de filesystem y Git solo están disponibles mediante sus flujos existentes de
+validación, políticas y aprobación.
 
-## Persistent Data
+## Datos persistentes
 
-The following must survive Backend restart or redeploy:
+Los siguientes datos deben sobrevivir reinicios o redespliegues del Backend:
 
-- `workspace/`, generated projects, Git repositories, and project environments;
-- LangGraph workflow and checkpoint stores, including pending approvals;
-- workflow events, CI runs, Git audit/state, and Promotion state;
-- recommendation, evaluation, governance, and policy/runtime stores;
-- durable Knowledge, observability, LLM usage, cost, pricing, and budget data.
+- `workspace/`, proyectos generados, repositorios Git y entornos del proyecto;
+- workflows y checkpoints LangGraph, incluidas approvals pendientes;
+- eventos, ejecuciones CI, auditoría/estado Git y estado de Promotion;
+- stores de recomendaciones, evaluación, gobernanza y políticas/runtime;
+- datos durables de Knowledge, observabilidad, usage LLM, costes, pricing y
+  budgets.
 
-SQLite database files must live outside an ephemeral process or container
-filesystem. Workspace and store volumes have independent lifecycle from the
-Backend process. Production backup and restore are required operational
-considerations, but backup automation and store migration are outside 9.1.
+Los archivos SQLite deben residir fuera del filesystem efímero del proceso o
+contenedor. Los volúmenes de workspace y stores tienen un ciclo de vida
+independiente del Backend. Backup y restore son consideraciones operativas
+necesarias, pero su automatización y la migración de stores quedan fuera de 9.1.
 
-## Dev vs Prod
+## Desarrollo y producción
 
-| Concern | DEV | PROD |
+| Aspecto | DEV | PROD |
 | --- | --- | --- |
-| Frontend | Local Vite server | Separate public service |
-| Backend | Local FastAPI process | Separate API/execution service |
-| MCP | Local private processes | Private internal processes/services |
-| Workspace | Local `workspace/` | Persistent mounted storage |
-| Stores | Local SQLite files | SQLite on persistent mounted storage |
-| Secrets | Local environment | Environment injection or secret manager |
+| Frontend | Servidor Vite local | Servicio público separado |
+| Backend | Proceso FastAPI local | Servicio API/ejecución separado |
+| MCP | Procesos privados locales | Procesos/servicios internos privados |
+| Workspace | `workspace/` local | Almacenamiento persistente montado |
+| Stores | Archivos SQLite locales | SQLite en almacenamiento persistente |
+| Secretos | Entorno local | Inyección de entorno o secret manager |
 
-Staging may be introduced later with the same production invariants; it is not
-defined in this phase.
+Staging puede incorporarse más adelante con los mismos invariantes de
+producción; no se define en esta fase.
 
-## Configuration
+## Configuración
 
-`.env.production.example` is a non-secret production template. Production
-values are injected at deployment time and real `.env` files are not committed.
-`OPENAI_API_KEY`, OTLP headers, tokens, passwords, and credentials come from
-environment variables or a secret manager. The Frontend receives only public
-configuration such as `VITE_API_BASE_URL`.
+`.env.production.example` es un template de producción sin secretos. Los
+valores reales se inyectan durante el despliegue y los archivos `.env` reales no
+se confirman. `OPENAI_API_KEY`, headers OTLP, tokens, passwords y credenciales
+provienen de variables de entorno o un secret manager. El Frontend solo recibe
+configuración pública como `VITE_API_BASE_URL`.
 
 `FRONTEND_BASE_URL`, `BACKEND_BASE_URL`, `CORS_ALLOWED_ORIGINS`,
-`WORKSPACE_ROOT`, and `DATA_ROOT` describe the deployment contract. The current
-runtime consumes `APPLICATION_URL`, `VITE_API_BASE_URL`, `API_CORS_ORIGINS`,
-`LANGGRAPH_CHECKPOINT_DB`, and `WORKFLOW_EVENT_STORE_PATH`; the example maps
-both sets explicitly. Wiring root-level mounts directly through new runtime
-variables is deferred to 9.2.
+`WORKSPACE_ROOT` y `DATA_ROOT` describen el contrato de despliegue. El runtime
+consume `APPLICATION_URL`, `VITE_API_BASE_URL`, `API_CORS_ORIGINS`,
+`LANGGRAPH_CHECKPOINT_DB` y `WORKFLOW_EVENT_STORE_PATH`; el ejemplo mapea ambos
+conjuntos explícitamente.
 
-## Healthchecks
+## Verificaciones de salud
 
-- **Frontend:** its HTTP service returns a successful response.
-- **Backend:** the expected deployment probe is `GET /health`; Phase 9.2 must
-  bind it to Backend readiness if the selected API entrypoint does not expose
-  that route yet.
-- **Critical MCPs:** their existing process/readiness mechanism where available.
+- **Frontend:** su servicio HTTP devuelve una respuesta exitosa.
+- **Backend:** la verificación esperada es `GET /health`.
+- **MCPs críticos:** usan su mecanismo existente de proceso/readiness cuando
+  está disponible.
 
-This phase defines the expected checks only. It adds no endpoint and changes no
-runtime behavior.
+Esta fase define las verificaciones esperadas sin agregar endpoints ni cambiar
+el comportamiento runtime.
 
-## Security Invariants
+## Invariantes de seguridad
 
-- MCP Servers remain private and are never exposed directly to the Internet.
-- No public shell or direct public filesystem interface exists.
-- Git mutations remain behind governed APIs and mandatory approvals.
-- CI and Promotion semantics remain unchanged.
-- Secrets never enter source control or Frontend bundles.
-- Workspace path validation continues to reject absolute paths and traversal.
-- Frontend never receives Backend credentials.
+- Los MCP Servers permanecen privados y nunca se exponen directamente.
+- No existe shell público ni interfaz pública directa al filesystem.
+- Las mutaciones Git permanecen detrás de APIs gobernadas y approvals.
+- Las semánticas de CI y Promotion no cambian.
+- Los secretos no entran en source control ni bundles del Frontend.
+- La validación del workspace rechaza paths absolutos y traversal.
+- El Frontend nunca recibe credenciales del Backend.
 
-## Known Limitations
+## Limitaciones conocidas
 
-Phase 9.1 does not provide container images, orchestration, deployment
-automation, load balancing, autoscaling, backup automation, Postgres, Redis, or
-multi-region operation. SQLite remains suitable only when its files are placed
-on storage with the required durability and filesystem semantics.
+La Fase 9.1 no incorpora imágenes de contenedor, orquestación, automatización de
+despliegue, load balancing, autoscaling, backup automático, Postgres, Redis ni
+operación multirregión. SQLite requiere almacenamiento con la durabilidad y
+semántica de filesystem adecuadas.
 
-## Phase 9.2 Handoff
+## Siguiente fase 9.2
 
-Phase 9.2 may select a concrete deployment target and wire persistent mounts,
-service startup, private MCP connectivity, health probes, secret injection, and
-backup procedures. It must preserve the public/private boundary and all current
-approval, Git, CI, Promotion, and MCP contracts.
+La Fase 9.2 selecciona un despliegue concreto y conecta volúmenes persistentes,
+inicio de servicios, MCPs privados, verificaciones de salud e inyección de
+secretos, preservando la frontera público/privado y los contratos de approvals,
+Git, CI, Promotion y MCP.

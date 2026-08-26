@@ -1,56 +1,56 @@
-# Phase 9.3 — Production Validation
+# Fase 9.3 — Validación de producción
 
-## Stack Validation
+## Validación del stack
 
-`docker compose config` and a no-cache build completed successfully. Frontend
-and Backend started healthy on `127.0.0.1:5173` and `127.0.0.1:8000`.
-Backend connected the five existing private stdio MCP Servers: Software Factory,
-Filesystem, Testing, Knowledge, and Git.
+`docker compose config` y el build sin caché terminaron correctamente. Frontend
+y Backend iniciaron saludables en `127.0.0.1:5173` y `127.0.0.1:8000`. Backend
+conectó los cinco MCP Servers privados existentes por `stdio`: Software Factory,
+Filesystem, Testing, Knowledge y Git.
 
-## E2E Validation
+## Validación E2E
 
-A controlled review workflow entered through `POST /api/workflows`, reached
-LangGraph, selected `inspect_workspace`, and completed
-`filesystem__list_files` against the mounted workspace. The existing development
-failure hook stopped execution immediately afterward, before Planning,
-Implementation, Git, CI, or a provider request. Durable evidence:
+Un workflow controlado de revisión entró por `POST /api/workflows`, alcanzó
+LangGraph, seleccionó `inspect_workspace` y completó
+`filesystem__list_files` contra el workspace montado. El hook de desarrollo
+existente detuvo la ejecución inmediatamente después, antes de Planning,
+Implementation, Git, CI o una llamada al proveedor. Evidencia durable:
 
 - thread: `6e70f173-3f02-49a8-8b5c-c1fdb70ddd36`;
 - checkpoint: `1f19fe7b-1b50-63e6-8003-dd1390b41408`;
-- 15 durable events, including `workspace_inspection_completed`;
-- LLM calls: 0.
+- 15 eventos durables, incluido `workspace_inspection_completed`;
+- llamadas LLM: 0.
 
-## Persistence
+## Persistencia
 
-The named `workspace` and `data` volumes retained marker data after both
-`docker compose restart backend` and `docker compose down` / `up -d`. The same
-checkpoint and all 15 workflow events remained accessible through the API.
+Los volúmenes nombrados de `workspace` y `data` conservaron los datos de marca
+después de `docker compose restart backend` y de `docker compose down` /
+`up -d`. El mismo checkpoint y los 15 eventos siguieron accesibles por API.
 
-## Restart Recovery
+## Recuperación tras reinicio
 
-Backend returned healthy after restart, reconnected all five MCP Servers, loaded
-the SQLite checkpointer from `/app/data`, and recovered the workflow registry,
-snapshot, events, workspace file, and store marker.
+Backend volvió a estar saludable tras el reinicio, reconectó los cinco MCP
+Servers, cargó el checkpointer SQLite desde `/app/data` y recuperó el registro,
+snapshot, eventos, archivo del workspace y marca del store.
 
-## Security Checks
+## Comprobaciones de seguridad
 
-- Backend runs as non-root user `app`.
-- Neither container is privileged and no Docker socket is mounted.
-- Only `/app/workspace` and `/app/data` are persistent Backend mounts.
-- MCP Servers publish no host ports; only Frontend and Backend use loopback ports.
-- Image ENV, Backend build context, and Frontend bundle contain no validation key
-  or `OPENAI_API_KEY`.
-- `.env.production` is ignored and was removed after validation.
+- Backend se ejecuta como usuario non-root `app`.
+- Ningún contenedor es privilegiado y no se monta el socket Docker.
+- Solo `/app/workspace` y `/app/data` son mounts persistentes del Backend.
+- Los MCP Servers no publican puertos; Frontend y Backend usan loopback.
+- ENV de imágenes, contexto de build y bundle del Frontend no contienen la key
+  de validación ni `OPENAI_API_KEY`.
+- `.env.production` está ignorado y se eliminó después de validar.
 
-## Known Limitations
+## Limitaciones conocidas
 
-Deployment remains local Compose without a cloud provider, TLS/domain,
-autoscaling, Kubernetes, remote CD, Postgres, Redis, or an external secrets
-manager. SQLite remains the initial durable store. Observability retains its
-current implementation.
+El despliegue sigue siendo Compose local, sin proveedor cloud, TLS/dominio,
+autoscaling, Kubernetes, CD remoto, Postgres, Redis ni secret manager externo.
+SQLite permanece como store durable inicial y observabilidad conserva su
+implementación actual.
 
-## Result
+## Resultado
 
-PASS. Container build, health, MCP connectivity, E2E workspace access,
-persistence, restart recovery, and minimum security invariants were validated.
-
+**PASS.** Se validaron build de contenedores, salud, conectividad MCP, acceso E2E
+al workspace, persistencia, recovery tras reinicio e invariantes mínimos de
+seguridad.
