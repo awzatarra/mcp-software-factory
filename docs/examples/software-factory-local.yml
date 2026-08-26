@@ -1,3 +1,6 @@
+# Historical, inactive example from Phase 10.
+# This file intentionally lives outside .github/workflows so publishing the
+# repository does not register or execute it as a GitHub Actions workflow.
 name: Software Factory Local
 
 on:
@@ -26,7 +29,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
 
       - name: Runner context
         run: |

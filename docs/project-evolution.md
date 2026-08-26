@@ -700,7 +700,7 @@ checkpoints/eventos después de restart, ejecución non-root y mounts mínimos.
 La Fase 9 quedó cerrada con un despliegue local reproducible y durable mediante
 Docker Compose.
 
-## Fase 10 — GitHub Actions con self-hosted runner
+## Fase 10 — Validación histórica con GitHub Actions
 
 ### Objetivo
 
@@ -762,7 +762,9 @@ el Backend temporal se detuvieron después de validar.
 ### Resultado
 
 La Fase 10 quedó cerrada con una integración GitHub Actions read-only, local y
-sin capacidades runtime adicionales.
+sin capacidades runtime adicionales. Para publicar el repositorio como
+portafolio, el runner fue desregistrado y el workflow activo se convirtió en
+un [ejemplo documental inerte](examples/software-factory-local.yml).
 
 # Arquitectura actual
 
@@ -770,8 +772,8 @@ sin capacidades runtime adicionales.
 Usuario / Frontend -----------+
 HTTP + SSE                    |
                               |
-GitHub Actions                |
-  | workflow_dispatch         |
+GitHub Actions (histórico)    |
+  | ejemplo inactivo          |
   v                           |
 self-hosted runner -----------+
 Windows / GET read-only       |
@@ -867,7 +869,7 @@ Windows / GET read-only       |
 - CI end-to-end ligado al SHA.
 - Promotion controlada a la rama objetivo.
 - Docker Compose con workspace y data persistentes.
-- GitHub Actions con self-hosted runner Windows.
+- GitHub Actions validado con self-hosted runner Windows; actualmente inactivo.
 
 # Estado actual
 
@@ -875,10 +877,11 @@ Windows / GET read-only       |
 - Fase 7 — Knowledge y Planner governance: cerrada.
 - Fase 8 — Evaluación avanzada: cerrada.
 - Fase 9 — Production Readiness y despliegue: cerrada.
-- Fase 10 — Integración GitHub Actions: cerrada.
+- Fase 10 — Integración GitHub Actions: cerrada y archivada como ejemplo.
 
 La plataforma actual puede recibir un requerimiento, planificar, implementar,
 validar, reparar, usar conocimiento durable, persistir y reanudar estado,
 observar ejecuciones, medir costes, gobernar cambios, crear commits, ejecutar CI,
-promover código, operar con Docker Compose e integrarse de forma read-only con
-GitHub Actions.
+promover código y operar con Docker Compose. La integración read-only con
+GitHub Actions permanece documentada como evidencia histórica, sin
+automatización activa en el repositorio público.

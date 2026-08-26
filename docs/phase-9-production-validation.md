@@ -15,8 +15,7 @@ LangGraph, seleccionó `inspect_workspace` y completó
 existente detuvo la ejecución inmediatamente después, antes de Planning,
 Implementation, Git, CI o una llamada al proveedor. Evidencia durable:
 
-- thread: `6e70f173-3f02-49a8-8b5c-c1fdb70ddd36`;
-- checkpoint: `1f19fe7b-1b50-63e6-8003-dd1390b41408`;
+- thread y checkpoint recuperables registrados durante la validación;
 - 15 eventos durables, incluido `workspace_inspection_completed`;
 - llamadas LLM: 0.
 

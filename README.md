@@ -36,7 +36,7 @@ The main flow can already:
 - record LLM usage, costs, pricing, reservations, and budgets
 - evaluate workflows and agents with hybrid metrics and LLM-as-a-Judge
 - run locally with Docker Compose
-- inspect the Backend from GitHub Actions through a self-hosted runner
+- demonstrate a previously validated, read-only GitHub Actions integration
 
 ---
 
@@ -114,7 +114,7 @@ observability, FinOps, Knowledge, evaluations, policies, and recommendations.
 - **Git**
 - **pytest**
 - **Docker + Docker Compose**
-- **GitHub Actions**
+- **GitHub Actions** (historical, inactive example)
 
 ---
 
@@ -286,6 +286,13 @@ them intentionally.
 - Promotion separated from CI and never automatically approved
 - recommendations and experiment results never applied automatically
 
+For public portfolio safety, this repository contains no active GitHub Actions
+workflow or registered self-hosted runner. The read-only workflow validated in
+Phase 10 is preserved as an inert example in
+[`docs/examples/software-factory-local.yml`](docs/examples/software-factory-local.yml).
+See the [security policy](SECURITY.md) for responsible disclosure and secret
+handling guidance.
+
 ---
 
 ## 🧪 Tests
@@ -327,7 +334,7 @@ Implemented and validated in the project:
 - governed Git, approved commits, and Promotion
 - CI pipeline, gates, SHA binding, CI Repair, and audit
 - Docker Compose with persistence and a non-root Backend
-- read-only GitHub Actions with a self-hosted Windows runner
+- historically validated read-only GitHub Actions integration (inactive)
   
 ---
 
@@ -346,7 +353,7 @@ MCP Software Factory demonstrates practical experience in:
 - APIs and real-time streaming
 - an operational React frontend
 - local containerization and persistence
-- secure GitHub Actions integration
+- secure design and E2E evidence for a read-only GitHub Actions integration
 
 It is not just “AI generating code.” It is a platform designed to turn software
 automation into an **observable, measurable, and controlled** process.
@@ -359,6 +366,10 @@ automation into an **observable, measurable, and controlled** process.
 
 - GitHub: [poolrivera](https://github.com/AwZatarra)
 - LinkedIn: [Pool Rivera](https://www.linkedin.com/in/pool-rivera-molina/)
+
+## 📄 License
+
+Released under the [MIT License](LICENSE).
 
 ---
 
