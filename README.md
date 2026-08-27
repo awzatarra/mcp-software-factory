@@ -108,7 +108,7 @@ conocimiento y FinOps.
 <div align="center">
   <a href="https://www.loom.com/share/51f644eabd494a8082b55ccf0be93399">
     <img
-      src="https://cdn.loom.com/sessions/thumbnails/51f644eabd494a8082b55ccf0be93399-da36b846ae24318d-full-play.gif"
+      src="docs/images/mcp-software-factory-walkthrough.gif"
       alt="MCP Software Factory"
       width="800"
     >
