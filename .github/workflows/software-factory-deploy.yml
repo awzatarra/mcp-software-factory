@@ -1,0 +1,72 @@
+name: Software Factory Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Local deployment target
+        required: true
+        type: choice
+        options: [demo-local]
+      commit_sha:
+        description: Full SHA; for rollback must equal the recorded previous_sha
+        required: true
+        type: string
+      operation:
+        description: Manual operation
+        required: true
+        default: deploy
+        type: choice
+        options: [deploy, rollback]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: software-factory-deploy-demo-local
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/master' && github.repository == 'awzatarra/mcp-software-factory'
+    runs-on: self-hosted
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: powershell
+    env:
+      CD_ENVIRONMENT: ${{ inputs.environment }}
+      CD_COMMIT_SHA: ${{ inputs.commit_sha }}
+      CD_OPERATION: ${{ inputs.operation }}
+      CD_ATTEMPT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Require Windows
+        run: |
+          if ($env:RUNNER_OS -ne 'Windows') { throw 'Windows runner required.' }
+
+      - name: Checkout deployment controller
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: deploy-control
+          persist-credentials: false
+
+      - name: Resolve requested deployment
+        id: target
+        run: |
+          python deploy-control/scripts/deployment/deploy_local.py select
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Checkout versioned source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+          path: deploy-source
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build, deploy and validate
+        run: |
+          python deploy-control/scripts/deployment/deploy_local.py run --source deploy-source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
