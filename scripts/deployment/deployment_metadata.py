@@ -9,12 +9,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+COMMAND_OPERATIONS = frozenset({
+    "git_rev_parse", "git_remote_get_url", "git_merge_base", "git_status", "git_ls_files",
+    "docker_compose_config", "docker_context_inspect", "docker_info", "docker_compose_ps",
+    "docker_inspect", "docker_compose_build", "docker_compose_up",
+})
+
+
 class DeploymentError(Exception):
     """Only fixed, non-sensitive diagnostic codes cross the CLI boundary."""
 
-    def __init__(self, reason_code, *, stage=None):
+    def __init__(self, reason_code, *, stage=None, operation=None):
         super().__init__(reason_code)
         self.stage = stage
+        self.operation = operation if operation in COMMAND_OPERATIONS else None
 
 
 def sha(value):
@@ -124,7 +132,8 @@ class Journal:
         attempt["status"] = self.data["status"] = "deploying"
         self.save()
 
-    def finish(self, attempt, success, reason=None, *, reason_code=None, stage=None):
+    def finish(self, attempt, success, reason=None, *, reason_code=None, stage=None,
+               command_operation=None):
         if attempt["status"] not in ("pending", "deploying"):
             return
         if success:
@@ -141,6 +150,8 @@ class Journal:
                 attempt["reason_code"] = reason_code
             if stage is not None:
                 attempt["stage"] = stage
+            if command_operation in COMMAND_OPERATIONS:
+                attempt["command_operation"] = command_operation
             self.data["status"] = "failed"
         attempt.update(current_sha=self.data["current_sha"], previous_sha=self.data["previous_sha"],
                        finished_at=now())

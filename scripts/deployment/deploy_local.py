@@ -20,7 +20,34 @@ VOLUMES = {"factory_workspace": "mcp-software-factory-workspace",
            "factory_data": "mcp-software-factory-data"}
 
 
-def command(args, cwd, timeout=60):
+def command_operation(args):
+    """Recognize fixed command shapes; never turn argument values into diagnostics."""
+    prefixes = {
+        ("git", "rev-parse"): "git_rev_parse",
+        ("git", "remote", "get-url"): "git_remote_get_url",
+        ("git", "merge-base"): "git_merge_base",
+        ("git", "status"): "git_status",
+        ("git", "ls-files"): "git_ls_files",
+        ("docker", "context", "inspect"): "docker_context_inspect",
+        ("docker", "info"): "docker_info",
+        ("docker", "inspect"): "docker_inspect",
+    }
+    for prefix, operation in prefixes.items():
+        if tuple(args[:len(prefix)]) == prefix:
+            return operation
+    if list(args[:2]) == ["docker", "compose"]:
+        index = 2
+        # Skip only the Compose options used by this controller and their values.
+        while index < len(args) and args[index] in ("-p", "-f", "--env-file"):
+            index += 2
+        if index < len(args):
+            return {"config": "docker_compose_config", "ps": "docker_compose_ps",
+                    "build": "docker_compose_build", "up": "docker_compose_up"}.get(args[index])
+    return None
+
+
+def command(args, cwd, timeout=60, operation=None):
+    operation = command_operation(args) if operation is None else operation
     # Suppress subprocess text: Docker diagnostics can contain local configuration.
     options = {"stdin": subprocess.DEVNULL, "stdout": subprocess.PIPE,
                "stderr": subprocess.PIPE, "shell": False, "cwd": cwd}
@@ -38,9 +65,9 @@ def command(args, cwd, timeout=60):
             finally:
                 process.kill()
                 process.communicate()
-            raise DeploymentError("deployment_command_timeout") from None
+            raise DeploymentError("deployment_command_timeout", operation=operation) from None
     if process.returncode:
-        raise DeploymentError("deployment_command_failed")
+        raise DeploymentError("deployment_command_failed", operation=operation)
     return stdout.decode("utf-8", errors="replace").strip()
 
 
@@ -276,11 +303,13 @@ def deploy(home, source, candidate, operation, attempt_id, docker_factory=Docker
             )}))
         except Exception as error:
             reason_code = str(error) if isinstance(error, DeploymentError) else "deployment_failed"
+            operation_name = error.operation if isinstance(error, DeploymentError) else None
             # Reload after write failures so an in-memory success cannot mask a failed save.
             persisted = Journal(home)
             pending = next(a for a in persisted.data["attempts"] if a["attempt_id"] == attempt_id)
-            persisted.finish(pending, False, f"{stage}_failed", reason_code=reason_code, stage=stage)
-            raise DeploymentError(reason_code, stage=stage) from None
+            persisted.finish(pending, False, f"{stage}_failed", reason_code=reason_code, stage=stage,
+                             command_operation=operation_name)
+            raise DeploymentError(reason_code, stage=stage, operation=operation_name) from None
 
 
 def main():
@@ -309,6 +338,8 @@ def main():
         print(f"Deployment failed: {code}")
         if isinstance(error, DeploymentError) and error.stage is not None:
             print(f"Stage: {error.stage}")
+        if isinstance(error, DeploymentError) and error.operation is not None:
+            print(f"Command operation: {error.operation}")
         return 1
     return 0
 

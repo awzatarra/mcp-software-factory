@@ -385,6 +385,85 @@ def test_failure_diagnostics_durable_and_cli_safe(tmp_path, simulated, monkeypat
         assert sensitive not in (tmp_path / "deployment.json").read_text()
 
 
+@pytest.mark.parametrize("args,expected", [
+    (["git", "rev-parse", "HEAD"], "git_rev_parse"),
+    (["git", "remote", "get-url", "origin"], "git_remote_get_url"),
+    (["git", "merge-base", "--is-ancestor", A, B], "git_merge_base"),
+    (["git", "status"], "git_status"),
+    (["git", "ls-files"], "git_ls_files"),
+    (["docker", "context", "inspect"], "docker_context_inspect"),
+    (["docker", "info"], "docker_info"),
+    (["docker", "inspect", "container"], "docker_inspect"),
+    (["docker", "compose", "--env-file", "private-path", "-f", "private-config", "config"], "docker_compose_config"),
+    (["docker", "compose", "-p", "project", "-f", "private-config", "ps"], "docker_compose_ps"),
+    (["docker", "compose", "-p", "project", "-f", "private-config", "build"], "docker_compose_build"),
+    (["docker", "compose", "-p", "project", "-f", "private-config", "up", "-d"], "docker_compose_up"),
+    (["docker", "compose", "-f", "build"], None),
+    (["unknown", "git", "status"], None),
+    (["docker", "compose", "--unknown", "secret", "config"], None),
+])
+def test_safe_command_operation_allowlist(args, expected):
+    assert cd.command_operation(args) == expected
+
+
+@pytest.mark.parametrize("args,operation,timed_out", [
+    (["git", "merge-base", "--is-ancestor", A, B], "git_merge_base", False),
+    (["docker", "compose", "--env-file", "secret-path", "config"], "docker_compose_config", False),
+    (["docker", "compose", "-f", "secret-path", "build"], "docker_compose_build", True),
+])
+def test_command_operation_survives_journal_and_cli(tmp_path, simulated, monkeypatch, capsys,
+                                                 args, operation, timed_out):
+    _, docker = simulated
+    complete(tmp_path, A, "deploy", "first")
+    complete(tmp_path, B, "deploy", "second")
+
+    class Process:
+        returncode, pid = 1, 123
+        calls = 0
+        def __init__(self, *args, **kwargs):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def communicate(self, **kwargs):
+            self.calls += 1
+            if timed_out and self.calls == 1:
+                raise subprocess.TimeoutExpired(args, 1, output=b"secret-stdout", stderr=b"secret-stderr")
+            return b"secret-stdout", b"secret-stderr"
+        def kill(self):
+            pass
+
+    monkeypatch.setattr(cd.subprocess, "Popen", Process)
+    monkeypatch.setattr(cd.subprocess, "run", lambda *args, **kwargs: None)
+    monkeypatch.setattr(cd, "validate_source", lambda *unused: cd.command(args, tmp_path))
+    original = cd.deploy
+    monkeypatch.setattr(cd, "deploy", lambda *args: original(*args, docker_factory=docker, health=lambda: None))
+    monkeypatch.setattr(cd, "settings", lambda: (tmp_path, C, "deploy"))
+    monkeypatch.setenv("CD_ATTEMPT_ID", "diagnostic")
+    monkeypatch.setattr(sys, "argv", ["deploy_local.py", "run", "--source", str(tmp_path / "source")])
+    assert cd.main() == 1
+    code = "deployment_command_timeout" if timed_out else "deployment_command_failed"
+    output = capsys.readouterr().out
+    assert output == f"Deployment failed: {code}\nStage: validate\nCommand operation: {operation}\n"
+    state = md.Journal(tmp_path).data
+    assert (state["current_sha"], state["previous_sha"]) == (B, A)
+    attempt = state["attempts"][-1]
+    assert attempt["reason"] == "validate_failed"
+    assert attempt["reason_code"] == code
+    assert attempt["command_operation"] == operation
+    for secret in ("secret-stdout", "secret-stderr", "secret-path"):
+        assert secret not in output + (tmp_path / "deployment.json").read_text()
+
+
+@pytest.mark.parametrize("operation,expected", [("git_status", "git_status"), ("token=private", None)])
+def test_explicit_operation_is_allowlisted(tmp_path, operation, expected):
+    with pytest.raises(md.DeploymentError) as error:
+        cd.command([sys.executable, "-c", "import sys; sys.exit(1)"], tmp_path, operation=operation)
+    assert str(error.value) == "deployment_command_failed"
+    assert error.value.operation == expected
+
+
 @pytest.mark.integration
 def test_real_compose_generated_config_is_valid(tmp_path):
     import shutil
