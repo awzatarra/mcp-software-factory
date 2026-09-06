@@ -39,6 +39,7 @@ jobs:
       CD_COMMIT_SHA: ${{ inputs.commit_sha }}
       CD_OPERATION: ${{ inputs.operation }}
       CD_ATTEMPT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+      SF_DEPLOY_HOME: C:\software-factory-deploy
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Require Windows
