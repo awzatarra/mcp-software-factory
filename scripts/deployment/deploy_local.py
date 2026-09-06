@@ -46,11 +46,13 @@ def command_operation(args):
     return None
 
 
-def command(args, cwd, timeout=60, operation=None):
+def command(args, cwd, timeout=60, operation=None, env=None):
     operation = command_operation(args) if operation is None else operation
     # Suppress subprocess text: Docker diagnostics can contain local configuration.
     options = {"stdin": subprocess.DEVNULL, "stdout": subprocess.PIPE,
                "stderr": subprocess.PIPE, "shell": False, "cwd": cwd}
+    if env is not None:
+        options["env"] = env
     if os.name == "nt":
         options["creationflags"] = subprocess.CREATE_NO_WINDOW
     with subprocess.Popen(args, **options) as process:

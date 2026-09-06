@@ -1,0 +1,58 @@
+name: sf-demo-aws
+
+services:
+  backend:
+    image: ${SF_BACKEND_IMAGE:?Exact ECR digest required}
+    env_file:
+      - path: ${SF_BACKEND_ENV_FILE:?External configuration required}
+        required: true
+    environment:
+      APP_ENV: production
+      WORKSPACE_ROOT: /app/workspace
+      DATA_ROOT: /app/data
+      LANGGRAPH_CHECKPOINT_DB: /app/data/langgraph-checkpoints.sqlite
+      WORKFLOW_EVENT_STORE_PATH: /app/data/workflow-events.sqlite
+      WORKFLOW_EVENT_DB: /app/data/langgraph-checkpoints-events.sqlite
+      API_CORS_ORIGINS: http://127.0.0.1:15173
+      USE_LANGGRAPH: "true"
+      MCP_NETWORK_MODE: private
+    ports: ["127.0.0.1:18000:8000"]
+    volumes:
+      - workspace:/app/workspace
+      - data:/app/data
+    networks: [private]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    init: true
+    restart: unless-stopped
+  frontend:
+    image: ${SF_FRONTEND_IMAGE:?Exact ECR digest required}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports: ["127.0.0.1:15173:80"]
+    networks: [private]
+    healthcheck:
+      test: [CMD, wget, --quiet, --spider, http://127.0.0.1/health]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    init: true
+    restart: unless-stopped
+
+networks:
+  private:
+    name: sf-demo-aws-private
+    driver: bridge
+volumes:
+  workspace:
+    name: sf-demo-aws-workspace
+    external: true
+  data:
+    name: sf-demo-aws-data
+    external: true

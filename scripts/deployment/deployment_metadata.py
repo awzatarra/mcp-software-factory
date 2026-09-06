@@ -13,6 +13,9 @@ COMMAND_OPERATIONS = frozenset({
     "git_rev_parse", "git_remote_get_url", "git_merge_base", "git_status", "git_ls_files",
     "docker_compose_config", "docker_context_inspect", "docker_info", "docker_compose_ps",
     "docker_inspect", "docker_compose_build", "docker_compose_up",
+    "ministack_health", "ecr_describe_repositories", "ecr_create_repository",
+    "ecr_describe_images", "docker_build", "docker_tag", "docker_push", "docker_pull",
+    "docker_compose_stop", "docker_start", "docker_create", "docker_volume",
 })
 
 
@@ -86,15 +89,21 @@ def deployment_lock(home):
 
 
 class Journal:
-    def __init__(self, home):
+    def __init__(self, home, environment="demo-local"):
+        if environment not in ("demo-local", "demo-aws-emulated"):
+            raise DeploymentError("unsupported_environment")
+        self.environment = environment
         self.path = Path(home) / "deployment.json"
         self.data = read_json(self.path) if self.path.exists() else {
-            "environment": "demo-local", "current_sha": None,
+            "environment": environment, "current_sha": None,
             "previous_sha": None, "status": "pending", "attempts": [],
         }
-        if (self.data.get("environment") != "demo-local"
+        if (self.data.get("environment") != environment
+                or self.data.get("target", environment) != environment
                 or not isinstance(self.data.get("attempts"), list)):
             raise DeploymentError("invalid_deployment_metadata")
+        if environment == "demo-aws-emulated":
+            self.data["target"] = environment
         for key in ("current_sha", "previous_sha"):
             if self.data.get(key) is not None:
                 sha(self.data[key])
@@ -118,11 +127,13 @@ class Journal:
             if previous["status"] in ("pending", "deploying"):
                 previous.update(status="failed", reason="interrupted_attempt", finished_at=now())
         attempt = {
-            "environment": "demo-local", "deployed_sha": sha(candidate),
+            "environment": self.environment, "deployed_sha": sha(candidate),
             "version": candidate, "deployed_at": None, "status": "pending",
             "current_sha": self.data["current_sha"], "previous_sha": self.data["previous_sha"],
             "attempt_id": attempt_id, "operation": operation, "started_at": now(),
         }
+        if self.environment == "demo-aws-emulated":
+            attempt["target"] = self.environment
         self.data["attempts"].append(attempt)
         self.data.update(status="pending", latest_attempt_id=attempt_id)
         self.save()
