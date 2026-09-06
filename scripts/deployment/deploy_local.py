@@ -274,12 +274,13 @@ def deploy(home, source, candidate, operation, attempt_id, docker_factory=Docker
             print(json.dumps({k: attempt[k] for k in (
                 "environment", "deployed_sha", "version", "deployed_at", "status", "current_sha", "previous_sha", "attempt_id"
             )}))
-        except Exception:
+        except Exception as error:
+            reason_code = str(error) if isinstance(error, DeploymentError) else "deployment_failed"
             # Reload after write failures so an in-memory success cannot mask a failed save.
             persisted = Journal(home)
             pending = next(a for a in persisted.data["attempts"] if a["attempt_id"] == attempt_id)
-            persisted.finish(pending, False, f"{stage}_failed")
-            raise DeploymentError(f"{stage}_failed") from None
+            persisted.finish(pending, False, f"{stage}_failed", reason_code=reason_code, stage=stage)
+            raise DeploymentError(reason_code, stage=stage) from None
 
 
 def main():
@@ -306,6 +307,8 @@ def main():
     except Exception as error:
         code = str(error) if isinstance(error, DeploymentError) else "deployment_failed"
         print(f"Deployment failed: {code}")
+        if isinstance(error, DeploymentError) and error.stage is not None:
+            print(f"Stage: {error.stage}")
         return 1
     return 0
 

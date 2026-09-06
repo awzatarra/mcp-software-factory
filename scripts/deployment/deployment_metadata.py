@@ -12,6 +12,10 @@ from pathlib import Path
 class DeploymentError(Exception):
     """Only fixed, non-sensitive diagnostic codes cross the CLI boundary."""
 
+    def __init__(self, reason_code, *, stage=None):
+        super().__init__(reason_code)
+        self.stage = stage
+
 
 def sha(value):
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{40}", value):
@@ -120,7 +124,7 @@ class Journal:
         attempt["status"] = self.data["status"] = "deploying"
         self.save()
 
-    def finish(self, attempt, success, reason=None):
+    def finish(self, attempt, success, reason=None, *, reason_code=None, stage=None):
         if attempt["status"] not in ("pending", "deploying"):
             return
         if success:
@@ -133,6 +137,10 @@ class Journal:
             self.data["status"] = "healthy"
         else:
             attempt.update(status="failed", reason=reason)
+            if reason_code is not None:
+                attempt["reason_code"] = reason_code
+            if stage is not None:
+                attempt["stage"] = stage
             self.data["status"] = "failed"
         attempt.update(current_sha=self.data["current_sha"], previous_sha=self.data["previous_sha"],
                        finished_at=now())

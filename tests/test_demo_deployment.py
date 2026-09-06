@@ -275,11 +275,14 @@ def test_metadata_failure_fails_job_without_advancing_pointers(tmp_path, simulat
             raise OSError("disk error")
         original(path, data)
     monkeypatch.setattr(md, "atomic_write", write)
-    with pytest.raises(md.DeploymentError, match="metadata_failed"):
+    with pytest.raises(md.DeploymentError, match="deployment_failed") as error:
         cd.deploy(tmp_path, tmp_path, B, "deploy", "new", docker, lambda: None)
+    assert error.value.stage == "metadata"
     state = md.Journal(tmp_path).data
     assert state["current_sha"] == A
     assert state["status"] == "failed"
+    assert state["attempts"][-1]["reason"] == "metadata_failed"
+    assert state["attempts"][-1]["reason_code"] == "deployment_failed"
 
 
 def test_external_home_required(monkeypatch, tmp_path):
@@ -327,6 +330,59 @@ def test_subprocess_isolation_and_safe_errors(tmp_path):
 def test_subprocess_timeout_is_bounded(tmp_path):
     with pytest.raises(md.DeploymentError, match="timeout"):
         cd.command([sys.executable, "-c", "import time; time.sleep(60)"], tmp_path, timeout=0.1)
+
+
+@pytest.mark.parametrize("stage,known,expected", [
+    ("validate", True, "platform_validation_missing_or_mismatched"),
+    ("build", True, "deployment_command_timeout"),
+    ("validate", False, "deployment_failed"),
+    ("build", False, "deployment_failed"),
+])
+def test_failure_diagnostics_durable_and_cli_safe(tmp_path, simulated, monkeypatch, capsys,
+                                                stage, known, expected):
+    events, base = simulated
+    complete(tmp_path, A, "deploy", "first")
+    complete(tmp_path, B, "deploy", "second")
+
+    def fail(*args):
+        if known:
+            raise md.DeploymentError(expected)
+        raise RuntimeError("password=private-value token=never-persist")
+
+    if stage == "validate":
+        monkeypatch.setattr(cd, "validate_evidence", fail)
+
+    class Docker(base):
+        def compose(self, *args, **kwargs):
+            if stage == "build" and args[0] == "build":
+                fail()
+            return super().compose(*args, **kwargs)
+
+    original_deploy = cd.deploy
+    monkeypatch.setattr(cd, "deploy", lambda *args: original_deploy(
+        *args, docker_factory=Docker, health=lambda: None))
+    monkeypatch.setattr(cd, "settings", lambda: (tmp_path, C, "deploy"))
+    monkeypatch.setenv("CD_ATTEMPT_ID", "failed-attempt")
+    monkeypatch.setattr(sys, "argv", ["deploy_local.py", "run", "--source", str(tmp_path / "source")])
+    assert cd.main() == 1
+    output = capsys.readouterr().out
+    assert f"Deployment failed: {expected}\nStage: {stage}\n" in output
+    assert "Traceback" not in output
+
+    # Read a fresh journal from disk, including the prior successful deployments.
+    state = md.Journal(tmp_path).data
+    assert (state["current_sha"], state["previous_sha"]) == (B, A)
+    attempt = state["attempts"][-1]
+    assert attempt["status"] == "failed"
+    assert attempt["reason"] == f"{stage}_failed"
+    assert attempt["reason_code"] == expected
+    assert attempt["stage"] == stage
+    assert (attempt["current_sha"], attempt["previous_sha"]) == (B, A)
+    assert attempt["deployed_at"] is None
+    assert events.count("up") == 0
+    for sensitive in ("private-value", "never-persist", "RuntimeError", "Traceback"):
+        assert sensitive not in output
+        assert sensitive not in (tmp_path / "deployment.json").read_text()
 
 
 @pytest.mark.integration
