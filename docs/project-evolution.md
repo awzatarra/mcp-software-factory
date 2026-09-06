@@ -766,6 +766,31 @@ sin capacidades runtime adicionales. Para publicar el repositorio como
 portafolio, el runner fue desregistrado y el workflow activo se convirtió en
 un [ejemplo documental inerte](examples/software-factory-local.yml).
 
+## Fase 11 — MiniStack CD Demo Local
+
+La publicación de la plataforma se definió mediante Spec-Driven Development
+en 11.1, se implementó en 11.2 y se documentó su cierre E2E en 11.3.
+GitHub Actions ejecuta un deployment manual por SHA mediante un self-hosted
+runner Windows y el Docker Compose existente.
+
+```text
+Spec -> deployment por SHA -> health -> metadata current/previous
+                                     -> rollback manual
+                                     -> restart / stop con persistencia
+```
+
+Se validaron primer deploy, redeploy del mismo SHA, nueva versión, rollback
+manual, restart y stop. La metadata y los volúmenes persistieron. El target es
+`demo-local`, sin AWS ni auto-deploy. La evidencia de plataforma y la ventana
+de mantenimiento siguen siendo locales y manuales; rollback requiere imágenes
+retenidas. El CD de la plataforma permanece separado del CI y Promotion de los
+proyectos generados.
+
+El [cierre E2E y checklist de publicación](phase-11-cd-demo.md) y la
+[matriz de aceptación](../specs/phase-11-cd-demo.md#resultado-de-implementación)
+delimitan la evidencia y las verificaciones pendientes. El cierre documental
+no cambia la visibilidad del repositorio ni retira el workflow CD.
+
 # Arquitectura actual
 
 ```text
@@ -878,6 +903,7 @@ Windows / GET read-only       |
 - Fase 8 — Evaluación avanzada: cerrada.
 - Fase 9 — Production Readiness y despliegue: cerrada.
 - Fase 10 — Integración GitHub Actions: cerrada y archivada como ejemplo.
+- Fase 11 — MiniStack CD Demo Local: cierre E2E documentado, con límites y verificaciones pendientes explícitos.
 
 La plataforma actual puede recibir un requerimiento, planificar, implementar,
 validar, reparar, usar conocimiento durable, persistir y reanudar estado,

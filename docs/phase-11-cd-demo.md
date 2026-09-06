@@ -1,9 +1,12 @@
-# Fase 11.2 — MiniStack CD Demo Local
+# Fase 11 — MiniStack CD Demo Local: cierre E2E
 
 Implementa [la especificación 11.1](../specs/phase-11-cd-demo.md) con
 `.github/workflows/software-factory-deploy.yml` y dos scripts Python estándar
 en `scripts/deployment/`. No cambia la aplicación ni el Compose existente.
-La ejecución real requiere que el operador registre su runner Windows.
+La Fase 11.3 documenta el cierre de la demo con los resultados reales aportados
+por el operador. Para repetirla se requiere un runner Windows registrado
+manualmente. El alcance de cada criterio se detalla en el
+[resultado de implementación](../specs/phase-11-cd-demo.md#resultado-de-implementación).
 
 ## Preparación local
 
@@ -14,10 +17,9 @@ La ejecución real requiere que el operador registre su runner Windows.
 2. Ejecutar el runner interactivamente con `run.cmd`, sin instalar un servicio.
    La misma cuenta debe disponer de Python 3.12+, Git, Docker Desktop con
    contenedores Linux y Compose que soporte `config --no-env-resolution`.
-3. Antes de iniciar el runner, definir `SF_DEPLOY_HOME` como ruta absoluta
-   persistente fuera del checkout, por ejemplo
-   `C:\Users\user\AppData\Local\MCPSoftwareFactory\data\deployment`.
-   Restringir su acceso a la cuenta local operadora. No ubicarla bajo `_work`.
+3. Preparar `SF_DEPLOY_HOME`, que el workflow actual establece en
+   `C:\software-factory-deploy`, fuera del checkout. Restringir su acceso a la
+   cuenta local operadora. No ubicarla bajo `_work`.
 4. Guardar la configuración local existente en
    `SF_DEPLOY_HOME/config/.env.production`. No se copia al checkout, imágenes,
    logs ni artefactos. No requiere nuevos secrets de GitHub ni PAT.
@@ -158,21 +160,31 @@ y ejecutar `docker restart @demoContainerIds` si hay IDs. Verificar después
 `http://127.0.0.1:8000/health` y `http://127.0.0.1:5173/`. No usar un filtro vacío
 ni operar sobre todos los contenedores de la máquina.
 
-## Escenarios preparados
+## Validación E2E real
 
-| Spec | Validación real pendiente del runner |
+Resultados reales ya validados y proporcionados por el operador para el cierre
+11.3. No se repitieron deployments ni operaciones Docker durante esta tarea.
+No se adjuntan logs completos ni se atribuyen IDs de ejecución no aportados.
+
+- SHA A: `ac05dcf9967e9136732fa4938630de7b843f53fd`.
+- SHA B: `151999aa1a22321922bd6bdd80db2ec87a4d8e36`.
+
+| Escenario | Resultado real |
 | --- | --- |
-| A | Publicar y validar SHA A, registrar constancia, deploy; healthy y current=A. |
-| B | Nuevo dispatch de A; mismas imágenes y previous sin cambios. |
-| C | Publicar/validar B, deploy; current=B, previous=A. |
-| E | Ventana para A, rollback con input A; rolled_back, current=A, previous=B. |
-| F | Restart de los contenedores del stack; health y datos conservados. |
-| G | Stop del stack; puertos dejan de responder y ambos volúmenes permanecen. |
+| A — First Deploy (primer despliegue) | `current_sha=A`, `previous_sha=null`, `status=healthy`. |
+| B — Redeploy Same SHA (mismo SHA) | `current_sha=A`, `previous_sha=null`, `status=healthy`; previous no se convierte en current. |
+| C — New Version (nueva versión) | `current_sha=B`, `previous_sha=A`, `status=healthy`. |
+| E — Rollback manual | `current_sha=A`, `previous_sha=B`; último intento con `operation=rollback` y `status=rolled_back`. |
+| F — Restart (reinicio) | Backend `/health`: `ok`; Frontend: HTTP 200; metadata preservada. |
+| G — Stop (detención) | `docker compose down` sin `-v`; volúmenes `mcp-software-factory-data` y `mcp-software-factory-workspace` preservados, al igual que la metadata externa. |
 
-Tests unitarios locales cubren estado, fallos, health, procedencia y secuencia
-con Docker simulado. No sustituyen estos escenarios reales. No forzar fallos
-destructivos en datos existentes. No publicar el repositorio ni ejecutar CD
-automáticamente para completar esta validación.
+Los resultados acreditan la persistencia de metadata y conservación de volúmenes.
+No incluyen una comparación individual del contenido de todos los stores.
+Tampoco afirman que el servicio siga encendido después de la prueba de stop.
+
+La Fase 11 queda cerrada para la demostración local de publicación por SHA,
+rollback, reinicio y apagado. La matriz de AC distingue evidencia E2E de pruebas
+automatizadas previas y deja explícitas las verificaciones pendientes.
 
 Validación local reproducible (sin suite completa de runtime):
 
@@ -184,27 +196,37 @@ git diff --check
 ```
 
 La prueba marcada integration solo usa el parser real de Compose sobre archivos
-temporales sin secretos; no construye imágenes ni inicia contenedores. A/B/C/E
-están cubiertos por simulación de la secuencia y persistencia real de JSON;
-F/G requieren el stack real. Las pruebas de Git y timeout usan procesos reales
-aislados sobre fixtures temporales.
+temporales sin secretos; no construye imágenes ni inicia contenedores. Las
+pruebas automatizadas complementan los resultados E2E anteriores. El último
+resultado registrado antes de 11.3 fue `52 passed, 1 deselected`; la prueba
+de parsing de Compose real se había validado por separado en 11.2. No se ejecutó
+pytest para este cierre documental.
 
-## Volver a público
+## Limitaciones conocidas
 
-1. Finalizar los jobs, detener el runner y desregistrarlo en GitHub siguiendo
-   las instrucciones de retirada. Quitar el registro, no solo detener run.cmd.
-2. Deshabilitar Actions/CD o mover el workflow a
-   `docs/examples/software-factory-deploy.yml` antes de publicar; conservarlo
-   allí como ejemplo inerte. No modificar el ejemplo read-only de Fase 10.
-3. Revisar código, historial y assets por secrets; no versionar SF_DEPLOY_HOME,
-   `.env`, workspace, data, SQLite ni logs. Confirmar las reglas de ignore.
-4. Cambiar visibilidad únicamente por decisión manual posterior. La creación
-   del YAML no registra runners, no habilita permisos adicionales ni cambia
-   por sí misma la visibilidad del repositorio.
+- Target actual: `demo-local`, self-hosted runner Windows y Docker Desktop iniciado.
+- Evidencia de plataforma local y manual por SHA; ventana de mantenimiento local y manual.
+- Rollback dependiente de imágenes retenidas; no existe registry remoto.
+- Sin AWS, auto-deploy ni rollback automático.
+- Posible indisponibilidad durante cambios; sin backups automáticos ni migraciones nuevas.
 
-Limitaciones: un solo environment local, ventana manual de mantenimiento,
-posible downtime y dependencias de build sin reproducibilidad bit a bit. Las
-imágenes saludables retenidas dan identidad exacta al redeploy/rollback; no
-hay registry, cloud, backups automáticos ni migraciones nuevas.
+## Checklist para publicación segura del repositorio
 
-Validación progresiva de CD demo-local ejecutada durante Fase 11.2.
+Checklist pendiente de ejecución por el operador antes de volver a público:
+
+1. Finalizar los jobs y detener el self-hosted runner.
+2. Desregistrar el runner en GitHub; detener `run.cmd` no elimina el registro.
+3. Retirar `software-factory-deploy.yml` de `.github/workflows` o moverlo fuera.
+4. Opcionalmente conservarlo en `docs/examples/software-factory-deploy.yml`
+   como ejemplo inerte, sin modificar el ejemplo read-only de Fase 10.
+5. Verificar que el contenido a publicar no incluya `.env`, `.env.production`,
+   `workspace/`, datos runtime, SQLite, logs, tokens ni credenciales.
+6. Confirmar que `C:\software-factory-deploy` está fuera del repositorio y del checkout.
+7. Ejecutar revisión de secretos sobre contenido, historial y assets.
+8. Comprobar `git status` limpio después de preparar los cambios de publicación.
+9. Revisar `.gitignore`: archivos locales sensibles y datos deben permanecer excluidos.
+10. Solo después, cambiar manualmente la visibilidad del repositorio.
+
+Este cierre no ejecuta el checklist, no retira el workflow ni cambia la
+visibilidad del repositorio. La revisión documental no sustituye la auditoría
+completa previa a publicación.

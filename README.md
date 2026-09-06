@@ -299,6 +299,20 @@ them intentionally.
 
 ---
 
+## Continuous Deployment Demo
+
+Deployment manual por SHA para `demo-local`, validado con rollback manual y
+persistencia de metadata y volúmenes. No utiliza AWS.
+
+```text
+GitHub Actions -> self-hosted runner Windows -> Docker Compose
+               -> health validation -> metadata -> rollback manual
+```
+
+[Resultados E2E, operación y límites de la Fase 11](docs/phase-11-cd-demo.md).
+
+---
+
 ## 🔐 Governance and security
 
 - human approvals for writes, environment preparation, tests, and Git

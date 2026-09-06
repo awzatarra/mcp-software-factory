@@ -378,3 +378,55 @@ de validación.
 AWS no se implementará en 11.2 salvo decisión explícita posterior. La Fase 11.1
 entrega exclusivamente esta especificación; no crea workflows, recursos,
 scripts de deployment, stores, endpoints ni cambios de runtime.
+
+## Resultado de implementación
+
+La Fase 11.2 implementó el contrato y la Fase 11.3 documenta el cierre E2E del
+target `demo-local`. Los requisitos anteriores se conservan. La evidencia real
+es la proporcionada por el operador y resumida en
+[Validación E2E real](../docs/phase-11-cd-demo.md#validación-e2e-real):
+
+- A: `ac05dcf9967e9136732fa4938630de7b843f53fd`.
+- B: `151999aa1a22321922bd6bdd80db2ec87a4d8e36`.
+- Primer deploy y redeploy: A/null, `healthy`.
+- Nueva versión: B/A, `healthy`.
+- Rollback: A/B, último intento `rollback` / `rolled_back`.
+- Reinicio: Backend `ok`, Frontend HTTP 200 y metadata preservada.
+- Stop mediante `docker compose down` sin `-v`: ambos volúmenes y metadata preservados.
+
+La matriz distingue resultados E2E, revisión de implementación y pruebas
+automatizadas previamente ejecutadas. El resultado previo de tests afectados
+fue `52 passed, 1 deselected`; 11.3 no ejecutó tests ni nuevos deployments.
+Un criterio aprobado mediante pruebas no se presenta como un ensayo E2E real
+del mismo fallo o condición.
+
+| AC | Estado | Evidencia y alcance |
+| --- | --- | --- |
+| AC1 | Cumplido | Deployments manuales reportados; workflow exclusivamente `workflow_dispatch`. |
+| AC2 | Cumplido | SHAs A y B explícitos en los resultados reales y en metadata. |
+| AC3 | Cumplido | Deployments por SHA; validadores de checkout/procedencia y constancia local por SHA. Pruebas previas de Git real y evidencia vinculada al SHA. |
+| AC4 | Cumplido | Revisión del controlador y prueba previa de Compose generado: se reutilizan Dockerfiles y Compose existentes. |
+| AC5 | Cumplido | Deployments `healthy` y Backend `/health=ok` tras restart; el controlador exige HTTP 200 y `status=ok`. |
+| AC6 | Cumplido | Frontend HTTP 200 reportado tras restart y requerido por health de los deployments. |
+| AC7 | Cumplido | Compose y configuración generada mantienen MCP internos sin puertos públicos; revisión y pruebas previas de configuración. |
+| AC8 | Pendiente de evidencia completa | E2E confirma volúmenes y metadata preservados. Falta comparación individual del contenido de todos los stores y repositorios generados tras redeploy/restart. |
+| AC9 | Cumplido | Redeploy real de A mantiene A/null; pruebas previas también preservan previous no nulo. |
+| AC10 | Cumplido | Rollback real de B a A: current=A, previous=B, intento `rolled_back`. |
+| AC11 | Pendiente de auditoría completa | Pruebas previas verifican ocultación de stdout/stderr y diagnóstico seguro. Falta revisión completa de secretos en historial y assets antes de publicación; no se infiere ausencia global de secretos. |
+| AC12 | Cumplido | Target local y puertos loopback en Compose y pruebas previas; no se requiere exposición pública. |
+| AC13 | Cumplido | Workflow CD separado del ejemplo read-only de Fase 10, confirmado en archivos existentes. |
+| AC14 | Cumplido | Stop real sin `-v`: volúmenes data/workspace y metadata preservados. |
+| AC15 | Cumplido por pruebas | Pruebas previas de build, deploy, health y metadata fallidos: no se avanza current ni se declara éxito. No se aporta un nuevo ensayo destructivo E2E. |
+| AC16 | Cumplido | Secuencia E2E A/null, B/A, A/B y metadata preservada tras restart/stop; atomicidad e idempotencia cubiertas por pruebas previas. |
+| AC17 | Cumplido por pruebas | Prueba previa de lock entre procesos y configuración concurrency sin cancelación. No se reporta un ensayo simultáneo real en Actions. |
+| AC18 | Cumplido por pruebas | Prueba previa de rechazo de imagen incorrecta; controlador compara IDs y labels antes/después de health. No se inventa evidencia adicional de inspección de contenedores. |
+
+La Fase 11 se cierra para la demo E2E local descrita, con AC8 y AC11 pendientes
+en su alcance completo. No se declara cumplimiento total de los 18 AC ni
+preparación para producción. La validación detallada de stores y la auditoría
+de publicación deben registrarse cuando se completen.
+
+Limitaciones: runner Windows y Docker Desktop iniciado; evidencia por SHA y
+ventana de mantenimiento locales y manuales; rollback dependiente de imágenes
+retenidas; sin registry remoto, AWS, auto-deploy ni rollback automático.
+El checklist de publicación está documentado, no ejecutado por este cierre.
