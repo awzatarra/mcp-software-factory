@@ -206,3 +206,5 @@ Limitaciones: un solo environment local, ventana manual de mantenimiento,
 posible downtime y dependencias de build sin reproducibilidad bit a bit. Las
 imágenes saludables retenidas dan identidad exacta al redeploy/rollback; no
 hay registry, cloud, backups automáticos ni migraciones nuevas.
+
+Validación progresiva de CD demo-local ejecutada durante Fase 11.2.
