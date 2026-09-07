@@ -86,6 +86,6 @@ Both deployment workflows already specify `contents: read`, manual dispatch,
 SHA-pinned checkout, non-persistent credentials and distinct target groups.
 Their functional content is preserved. Public repository access does not
 justify exposing a self-hosted runner, credentials or the local API.
-PUBLIC-57 is Ready under the owner's recruiter-visibility scope. External
+PUBLIC-57 is Done/Public under the owner's recruiter-visibility scope. External
 Apps and the offline runner are out of scope; no deployment is activated.
 No evidence of real credentials was identified in the reviewed repository.

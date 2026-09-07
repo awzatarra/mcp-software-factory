@@ -82,4 +82,4 @@ validation without evidence.
 - [x] README, architecture and configuration documented.
 - [x] PUBLIC-28: Reviewed/Out of Scope; external Apps and offline runner excluded by owner.
 - [x] PUBLIC-56: Done for recruiter visibility, using the recorded evidence and accepted scope.
-- [x] PUBLIC-57: Ready; owner authorized publication. Execution outcome is verified separately.
+- [x] PUBLIC-57: Done/Public; authorized publication completed and anonymous access verified. See tasks for evidence.

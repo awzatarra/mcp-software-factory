@@ -1,7 +1,7 @@
 # Public Repository Tasks
 
-Review date: 2026-09-07. **PUBLIC-57 is READY**, authorized by the owner for
-recruiter visibility. This preparation record precedes the publication action.
+Review date: 2026-09-07. **PUBLIC-57 is DONE / PUBLIC**, authorized by the owner
+for recruiter visibility. See the publication result below.
 No history rewrite, credential revocation or runner registration was performed.
 Earlier Phase 12 documentation changes in the working tree were preserved.
 
@@ -67,7 +67,7 @@ Status meanings: **Done** = implemented/verified or explicitly confirmed by the 
 | PUBLIC-54 | Public dependencies | Done: clean Python install from PyPI and frontend lockfile install; no private dependency required for tests/startup. |
 | PUBLIC-55 | New-developer README | Reviewed: fixes private env test and previously inaccurate Actions claim; paid workflows require own key. |
 | PUBLIC-56 | Acceptance review | DONE under owner-approved recruiter visibility scope: no real credentials detected, current files scanned, history and media reviewed, identity controlled, tests green and clean clone validated. |
-| PUBLIC-57 | Make repository public | READY: owner authorizes final status/diff review, preparation commit, push to master, rendered-content check, public visibility and anonymous review. Publication outcome is verified separately after execution. |
+| PUBLIC-57 | Make repository public | DONE / PUBLIC: preparation commit a5b7611 pushed to master; visibility changed to Public; README/GIF/architecture reviewed in an unsigned-in browser; documentation, code and release video returned anonymous HTTP 200. |
 
 ## Audit record
 
@@ -151,6 +151,26 @@ PUBLIC-19, PUBLIC-20, PUBLIC-53 and PUBLIC-56 are Done; PUBLIC-50 is
 Reviewed/Clean with the historical synthetic finding disposition above.
 PUBLIC-57 is Ready and the owner authorized commit, push and public visibility.
 Ready itself is not a claim that publication has already occurred.
+
+## Publication result
+
+On 2026-09-07, preparation commit `a5b7611` was pushed to `master`, after
+the final candidate scan and staged diff review. The owner-authorized
+visibility change succeeded for
+[awzatarra/mcp-software-factory](https://github.com/awzatarra/mcp-software-factory).
+
+An isolated browser with no GitHub session displayed **Public** and **Sign in**.
+The README and architecture rendered, the walkthrough GIF loaded at 800 pixels
+wide, and the project-evolution document rendered its phase headings.
+Separate HTTP requests without cookies or authorization returned 200 for
+the repository, configuration guide, project evolution, `host.py`, and the
+release video download. No paid workflow, deployment or integration was run.
+The existing full-test and clean-clone evidence is recorded below; those full
+suites were not repeated merely to change repository visibility.
+
+The preparation commit used GitHub's noreply author address, not a personal
+email. Private environment files, data, logs and the video were not added to
+Git. No runner or App configuration was changed. PUBLIC-57 is now Done/Public.
 
 If a real credential is found later: revoke at the provider, replace locally,
 review history cleanup and rescan. Do not paste the value into issues or this
