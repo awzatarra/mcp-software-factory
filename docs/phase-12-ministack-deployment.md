@@ -312,3 +312,5 @@ runner, mover/deshabilitar workflows ejecutables conservando ejemplos si
 conviene, revisar secrets/historial/assets, homes externos y gitignore, y
 confirmar git status limpio. No se ejecutan esos cambios ni se modifica la
 visibilidad automáticamente como parte de 12.2B.
+
+Validación E2E progresiva del target demo-aws-emulated en curso.
