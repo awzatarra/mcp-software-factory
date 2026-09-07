@@ -407,7 +407,7 @@ async def test_output_is_truncated_and_secrets_are_redacted(tmp_path: Path, monk
     await service.initialize()
 
     def output(*_args, **_kwargs):
-        return subprocess.CompletedProcess(["python", "--version"], 0, b"token=abc123456789 very long output", b"sk-abcdefghi")
+        return subprocess.CompletedProcess(["python", "--version"], 0, b"token=dummy very long output", b"Bearer dummy")
 
     monkeypatch.setattr(service, "_run_command", output)
     preview = await service.prepare("workflow-1", "health-api")
@@ -415,8 +415,9 @@ async def test_output_is_truncated_and_secrets_are_redacted(tmp_path: Path, monk
     run = await service.run("workflow-1", "health-api", expected_fingerprint=preview.pipeline_fingerprint)
 
     assert run.steps[0].output_truncated is True
-    assert "abc123456789" not in (run.steps[0].stdout_summary or "")
-    assert "sk-abcdefghi" not in (run.steps[0].stderr_summary or "")
+    assert "dummy" not in (run.steps[0].stdout_summary or "")
+    assert "token=[REDACTED]" in (run.steps[0].stdout_summary or "")
+    assert run.steps[0].stderr_summary == "Bearer [REDACTED]"
 
 
 @pytest.mark.asyncio

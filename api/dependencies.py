@@ -6,7 +6,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from typing import AsyncIterator
 
-from dotenv import load_dotenv
+from runtime_config import load_settings
 from fastapi import Request
 from openai import AsyncOpenAI
 
@@ -78,7 +78,7 @@ from streaming import (
 )
 from streaming.store import WorkflowEventStore
 from tool_executor import HostToolExecutor
-from servers.filesystem_server import get_workspace_root
+from servers.filesystem_server import get_workspace_root, set_workspace_root
 
 
 @dataclass(frozen=True)
@@ -114,11 +114,12 @@ def get_services(request: Request) -> ApiServices:
 
 @asynccontextmanager
 async def build_api_services() -> AsyncIterator[ApiServices]:
-    load_dotenv()
-    api_key = os.getenv("OPENAI_API_KEY")
+    settings = load_settings()
+    api_key = settings.openai_api_key
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY no está configurada.")
-    model = os.getenv("OPENAI_MODEL") or "gpt-4.1-mini"
+    model = settings.openai_model
+    set_workspace_root(settings.workspace_root)
     async with AsyncExitStack() as stack:
         event_store = SQLiteWorkflowEventStore()
         await event_store.initialize()

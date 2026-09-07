@@ -499,3 +499,45 @@ No afirmar completados AC de persistencia solo por ver volúmenes existentes.
 Validación de esta revisión: `git diff --check` y revisión de alcance del único
 archivo modificado. Sin nuevos scripts, workflows, cambios Docker/runtime,
 recursos AWS ni ejecución de deployments. No pytest para esta revisión documental.
+
+## Resultado de implementación
+
+Cierre 12.3: los criterios y el texto prospectivo anteriores se conservan como
+contrato histórico, sin reescribirlos. El estado de entrega actualizado es el
+[cierre de Fase 12](../docs/phase-12-summary.md). Los resultados E2E A–H fueron
+aportados por el operador; esta revisión no ejecuta nuevos deployments.
+
+"Validado capacidad" distingue pruebas de implementación o evidencia
+documental del E2E de plataforma. No significa una ejecución E2E adicional.
+
+| AC | Estado | Evidencia y alcance |
+| --- | --- | --- |
+| AC1 | Validado E2E | A: MiniStack inicia; imagen 1.5.8/digest fijados en informes de capacidades y cierre. |
+| AC2 | Validado E2E | A/F: health 200; F: backend/frontend consultables en ECR por SHA. |
+| AC3 | Validado capacidad | Aislamiento de entorno, credenciales dummy y rechazo de endpoints reales documentados y cubiertos por pruebas 12.2B. |
+| AC4 | Validado E2E | A/B/H: target, puertos, metadata y volúmenes propios; separación contractual respecto de demo-local. |
+| AC5 | Validado E2E | B/D: deployment de las identidades A/B reportadas; validación de checkout forma parte de validate. |
+| AC6 | Validado E2E | B/D/E: ambas imágenes con digests distintos por versión; rollback recupera los originales. |
+| AC7 | Validado E2E | B/D/E y prueba real ECR-only previa de build/push/pull; no se afirma recuperación en daemon vacío. |
+| AC8 | Validado E2E | B/E/G: Compose con imágenes por digest y una instancia por servicio. ECS no es requisito del contrato revisado. |
+| AC9 | Validado E2E | B/G healthy bajo el contrato health/inspect; B reporta backend 127.0.0.1:18000. Sin nueva captura de logs en 12.3. |
+| AC10 | Validado E2E | B/G healthy bajo el contrato de frontend del target; B reporta 127.0.0.1:15173. |
+| AC11 | Parcial | H conserva volúmenes; falta comparación de archivos y registros de todos los stores antes/después. La prueba sintética no la sustituye. |
+| AC12 | Validado E2E | C: current=A, previous=null, mismos digests y sin duplicación. |
+| AC13 | Validado E2E | D: healthy, current=B, previous=A. |
+| AC14 | Validado E2E | E: rollback manual, rolled_back, current=A, previous=B, digests A recuperados. |
+| AC15 | Validado E2E | F/G: ECR conserva identidad A y aplicación reinicia healthy sin duplicados. Limitado al restart ordenado reportado. |
+| AC16 | Parcial | H confirma contenedores detenidos, metadata y tres volúmenes preservados; no reporta inventario de imágenes retenidas después de stop. |
+| AC17 | Validado capacidad | Pruebas de diagnósticos/fallos de 12.2B y compatibilidad Fase 11; no atribuirles E2E negativo I–L nuevo. |
+| AC18 | Parcial | Target aislado y pruebas de compatibilidad Fase 11; no se aportó auditoría antes/después de los datos reales de demo-local. |
+| AC19 | Validado capacidad | Implementación local ECR-only y guards de endpoint; sin recursos, credenciales ni llamadas AWS reales en el alcance registrado. |
+| AC20 | Validado capacidad | Cierre documenta matriz de cercanía, diferencias de compute/red/storage/IAM y handoff opcional. |
+
+Balance: **13 validados E2E, 4 validados capacidad/documentación, 3 parciales**.
+Ningún AC revisado se descarta como no aplicable. No se declaran cerrados
+los controles parciales: requieren evidencia adicional si se desea aceptación
+íntegra de los veinte criterios. Fase 12 se cierra en el alcance de demo local
+emulada documentada, no como certificación cloud o de producción.
+
+ECS fue rechazado por networking en 12.2A.1; ECR + Compose es la arquitectura
+revisada y validada. AWS real y una eventual Fase 13 permanecen fuera de alcance.

@@ -11,7 +11,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from dotenv import load_dotenv
+from runtime_config import load_settings
 from jsonschema import Draft202012Validator
 from openai import AsyncOpenAI
 
@@ -2077,11 +2077,11 @@ async def main() -> None:
         sys.stdout.reconfigure(encoding="utf-8")
     if hasattr(sys.stdin, "reconfigure"):
         sys.stdin.reconfigure(encoding="utf-8")
-    load_dotenv()
+    settings = load_settings()
     import os
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    model_name = os.getenv("OPENAI_MODEL") or "gpt-4.1-mini"
+    api_key = settings.openai_api_key
+    model_name = settings.openai_model
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY no estÃ¡ configurada. Copia .env.example a .env y completa la clave.")
 

@@ -1,7 +1,7 @@
 # Fase 12.2B — MiniStack ECR y Docker Compose local
 
-Target: `demo-aws-emulated`. Implementación preparada para validación E2E
-por etapas; no declarar cerrado el E2E de plataforma por pasar tests mock.
+Target: `demo-aws-emulated`. Implementación con resultados E2E A–H registrados
+en el [cierre 12.3](phase-12-summary.md), con límites de evidencia explícitos.
 Contrato: [spec revisada](../specs/phase-12-ministack-aws.md).
 
 ## Arquitectura
@@ -265,7 +265,7 @@ Detiene contenedores Compose sf-demo-aws y MiniStack propio. Conserva journal,
 volúmenes, snapshots ECR e imágenes. No reescribe el último resultado de deploy
 como si stop fuera otro deployment; el runtime queda detenido intencionalmente.
 
-## Validación y E2E pendiente
+## Validación y cierre E2E
 
 Pruebas específicas cubren target/home, env, endpoints, ECR ensure, digests,
 bindings, metadata, first/same/new/rollback, fallos e idempotencia. Fase 11
@@ -284,21 +284,24 @@ digest, restart ordenado, pull y lectura del archivo marcador. Pasó y limpió
 sus recursos. Esto no es el E2E de plataforma ni vuelve a abrir ECS.
 Resultado exacto: `1 passed in 11.10s` para el test de integración ECR-only.
 
-Ejecutar A-H uno por uno, revisando evidencia antes de continuar:
+Resultados A–H aportados por el operador después de la entrega inicial.
+Este cierre documental no repitió esas ejecuciones:
 
 | Paso | Estado de entrega |
 | --- | --- |
-| A MiniStack Start del target definitivo | Preparado; pendiente con home definitivo. |
-| B First Deploy A | Pendiente: SHA committed, config/evidencia/mantenimiento reales. |
-| C Same SHA A | Preparado; pendiente tras B. |
-| D New Version B | Preparado; pendiente segundo SHA validado. |
-| E Rollback A | Preparado; pendiente tras D. |
-| F MiniStack Restart | Prueba sintética pasó; pendiente ECR de plataforma. |
-| G Application Restart | Preparado; pendiente comprobar stores de plataforma. |
-| H Stop | Implementado; pendiente validación del target definitivo. |
+| A MiniStack Start del target definitivo | Health 200; 127.0.0.1:4566. |
+| B First Deploy A | Healthy, previous=null; backend/frontend publicados en loopback. |
+| C Same SHA A | Healthy, mismos digests, previous=null, sin duplicación. |
+| D New Version B | Healthy, current=B, previous=A; nuevos digests. |
+| E Rollback A | Rolled_back, current=A, previous=B; digests A recuperados. |
+| F MiniStack Restart | Health 200; ECR conserva A consultable por SHA y loopback intacto. |
+| G Application Restart | Healthy; una instancia por servicio, current=A, previous=B. |
+| H Stop | Contenedores detenidos; metadata y tres volúmenes del target preservados. |
 
-No se disparó Actions ni se ejecutó A-H automáticamente. No afirmar cierre
-E2E mientras estas evidencias estén pendientes.
+Las identidades y digests están en el [registro E2E](phase-12-summary.md#resultados-e2e).
+La [matriz de aceptación](../specs/phase-12-ministack-aws.md#resultado-de-implementación)
+mantiene AC11, AC16 y AC18 parciales: no confundir conservación de volúmenes
+con auditoría completa de stores, imágenes tras stop o datos de demo-local.
 
 ## Límites y publicación segura
 
@@ -313,4 +316,5 @@ conviene, revisar secrets/historial/assets, homes externos y gitignore, y
 confirmar git status limpio. No se ejecutan esos cambios ni se modifica la
 visibilidad automáticamente como parte de 12.2B.
 
-Validación E2E progresiva del target demo-aws-emulated en curso.
+Cierre documental completado para la demo emulada; no certifica AWS real ni
+producción cloud. La Fase 13 solo se propone como handoff opcional.

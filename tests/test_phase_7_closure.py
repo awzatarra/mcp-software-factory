@@ -185,8 +185,10 @@ def _experiment_metrics(sample_size: int = 5000) -> tuple[dict[str, Any], dict[s
     return control, winner, comparison
 
 
-def test_phase_7_env_files_are_synchronized_without_printing_secret_values() -> None:
-    env, env_duplicates = _parse_env(Path(".env"))
+def test_phase_7_example_supports_clean_clone_without_private_env(tmp_path: Path) -> None:
+    copied_env = tmp_path / ".env"
+    copied_env.write_bytes(Path(".env.example").read_bytes())
+    env, env_duplicates = _parse_env(copied_env)
     example, example_duplicates = _parse_env(Path(".env.example"))
 
     assert env_duplicates == []

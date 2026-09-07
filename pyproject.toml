@@ -20,7 +20,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["api", "api.routes", "api.services", "clients", "servers", "graph", "policies", "streaming"]
-py-modules = ["host", "tool_executor"]
+py-modules = ["host", "tool_executor", "runtime_config"]
 
 [project.optional-dependencies]
 observability = [

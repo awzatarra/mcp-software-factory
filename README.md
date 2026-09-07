@@ -99,11 +99,11 @@ observability, FinOps, Knowledge, evaluations, policies, and recommendations.
 
 ---
 
-## 🎥 Recorrido en video
+## 🎥 Video walkthrough
 
-Recorrido completo de la interfaz de **MCP Software Factory**, mostrando el flujo
-desde workflows y ejecución hasta Git, CI, evaluaciones, observabilidad,
-conocimiento y FinOps.
+A complete walkthrough of the **MCP Software Factory** interface, covering
+workflows and execution through Git, CI, evaluations, observability,
+knowledge, and FinOps.
 
 <div align="center">
   <a href="https://www.loom.com/share/51f644eabd494a8082b55ccf0be93399">
@@ -116,14 +116,14 @@ conocimiento y FinOps.
   <p>
     <strong>MCP Software Factory</strong><br>
     <a href="https://www.loom.com/share/51f644eabd494a8082b55ccf0be93399">
-      ▶️ Ver recorrido completo de MCP Software Factory
+      ▶️ Watch the full MCP Software Factory walkthrough
     </a>
   </p>
 </div>
 
-⬇️ [Descargar video completo (.webm)](https://github.com/awzatarra/mcp-software-factory/releases/latest/download/mcp-software-factory-demo.webm)
+⬇️ [Download the full video (.webm)](https://github.com/awzatarra/mcp-software-factory/releases/latest/download/mcp-software-factory-demo.webm)
 
-**Incluye:** Workflows · Ejecución · Git · CI · Timeline · Evaluaciones · Knowledge · Observabilidad · FinOps
+**Includes:** Workflows · Execution · Git · CI · Timeline · Evaluations · Knowledge · Observability · FinOps
 
 ---
 
@@ -142,7 +142,17 @@ conocimiento y FinOps.
 - **Git**
 - **pytest**
 - **Docker + Docker Compose**
-- **GitHub Actions** (historical, inactive example)
+- **MiniStack (AWS ECR emulation)** — real image push/pull with SHA/digest
+  versioning, closely aligned with AWS ECR registry workflows. Compute runs
+  locally on Docker Compose, not ECS; no real AWS services are used.
+- **GitHub Actions** (manual local CD; historical read-only example)
+
+### Prerequisites
+
+Install Python 3.12+, uv (or pip with a virtual environment), Node.js 22+,
+npm, and Git. Docker Desktop with Linux containers and Docker Compose v2
+are optional for container deployment; they are not required for unit tests.
+Run commands from the repository root unless a step changes directories.
 
 ---
 
@@ -163,6 +173,11 @@ uv sync --dev
 
 You can also use an equivalent Python 3.12+ environment and install the
 dependencies declared in `pyproject.toml`.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
 
 ### 3. Configure the environment
 
@@ -185,6 +200,13 @@ API_CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 `.env.example` contains the complete contract for MCP timeouts, Knowledge,
 observability, FinOps, evaluation, alerts, notifications, and CI. Never commit
 API keys, tokens, credentials, `.env`, or `.env.production`.
+
+Set `OPENAI_API_KEY` to your own key and `OPENAI_MODEL` to a model available
+to your account before starting the API or Host. They are intentionally blank
+in examples. Unit tests do not need these values. Provider-backed workflows
+can incur costs; health checks do not invoke the provider.
+See [configuration](docs/configuration.md) for required values, path resolution,
+optional settings, and the difference between local and container setup.
 
 ### 4. Install the Frontend
 
@@ -213,7 +235,7 @@ USE_LANGGRAPH=true
 ### FastAPI API
 
 ```powershell
-.\.venv\Scripts\uvicorn.exe api.app:app --host 127.0.0.1 --port 8000
+.\.venv\Scripts\uvicorn.exe api.app:app --env-file .env --host 127.0.0.1 --port 8000
 ```
 
 The API is available at:
@@ -301,15 +323,34 @@ them intentionally.
 
 ## Continuous Deployment Demo
 
-Deployment manual por SHA para `demo-local`, validado con rollback manual y
-persistencia de metadata y volúmenes. No utiliza AWS.
+Manual deployment by SHA for `demo-local`, validated with manual rollback and
+persistent metadata and volumes. It does not use AWS.
 
 ```text
-GitHub Actions -> self-hosted runner Windows -> Docker Compose
-               -> health validation -> metadata -> rollback manual
+GitHub Actions -> Windows self-hosted runner -> Docker Compose
+               -> health validation -> metadata -> manual rollback
 ```
 
-[Resultados E2E, operación y límites de la Fase 11](docs/phase-11-cd-demo.md).
+[Phase 11 E2E results, operations, and limitations](docs/phase-11-cd-demo.md).
+
+---
+
+## AWS Emulated Deployment
+
+MCP Software Factory includes a CD pipeline validated in an
+**AWS-emulated environment with MiniStack**, with AWS-aligned contracts and safe local compute.
+
+```text
+GitHub Actions -> MiniStack ECR -> images by SHA/digest
+               -> Docker Compose -> health -> manual rollback
+```
+
+- Emulated ECR with real image push/pull and versioning by SHA/digest.
+- Validated deployment, idempotent redeployment, new version deployment, and manual rollback.
+- Persistent metadata and volumes, restart, and loopback-only networking.
+- No real AWS services used; Docker Compose does not emulate ECS.
+
+[E2E closure, partially validated criteria, and handoff to real AWS](docs/phase-12-summary.md).
 
 ---
 
@@ -326,12 +367,20 @@ GitHub Actions -> self-hosted runner Windows -> Docker Compose
 - Promotion separated from CI and never automatically approved
 - recommendations and experiment results never applied automatically
 
-For public portfolio safety, this repository contains no active GitHub Actions
-workflow or registered self-hosted runner. The read-only workflow validated in
+The two deployment workflows are manual-only, use read-only repository
+permissions, pin checkout by commit, and do not persist checkout credentials.
+They target a trusted self-hosted Windows runner; do not attach an untrusted
+public job to a personal machine. The existing offline Windows runner is
+outside the public demo scope; recruiter review requires no runner or external
+deployment integration. The read-only workflow from
 Phase 10 is preserved as an inert example in
 [`docs/examples/software-factory-local.yml`](docs/examples/software-factory-local.yml).
 See the [security policy](SECURITY.md) for responsible disclosure and secret
 handling guidance.
+
+See the [public-readiness requirements and release gate](specs/public-repository/requirements.md)
+and [audit status](specs/public-repository/tasks.md). Passing tests or a pattern
+scan alone does not certify that a repository is safe to publish.
 
 ---
 
@@ -375,7 +424,7 @@ Implemented and validated in the project:
 - CI pipeline, gates, SHA binding, CI Repair, and audit
 - Docker Compose with persistence and a non-root Backend
 - historically validated read-only GitHub Actions integration (inactive)
-  
+
 ---
 
 ## 💡 Project value
@@ -423,7 +472,7 @@ uv sync --dev
 Copy-Item .env.example .env
 
 # 3. Start the API
-.\.venv\Scripts\uvicorn.exe api.app:app --host 127.0.0.1 --port 8000
+.\.venv\Scripts\uvicorn.exe api.app:app --env-file .env --host 127.0.0.1 --port 8000
 
 # 4. In another terminal, start the UI
 cd frontend

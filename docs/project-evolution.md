@@ -791,6 +791,37 @@ El [cierre E2E y checklist de publicación](phase-11-cd-demo.md) y la
 delimitan la evidencia y las verificaciones pendientes. El cierre documental
 no cambia la visibilidad del repositorio ni retira el workflow CD.
 
+# Fase 12 — AWS emulado con MiniStack
+
+La evolución siguió SDD: especificación, validación de capacidades ECR/ECS,
+investigación bloqueante de networking, revisión explícita del contrato,
+implementación y cierre E2E. MiniStack ECS creó contenedores reales, pero sus
+bindings wildcard incumplieron loopback. Se rechazó como compute sin relajar
+seguridad ni ocultar el resultado `MINISTACK_ECS_LOOPBACK_UNSUPPORTED`.
+
+```text
+GitHub Actions / runner Windows
+               |
+               v
+MiniStack ECR: imágenes por SHA/digest
+               |
+               v
+Docker Compose: Frontend + Backend en loopback
+               |
+               v
+Health -> current/previous -> rollback manual
+               |
+               v
+Restart / stop con metadata y volúmenes conservados
+```
+
+ECR representa AWS emulado; Compose es compute local, no ECS. Se registraron
+deploy inicial, redeploy idempotente, nueva versión, rollback y restart/stop.
+El [cierre de Fase 12](phase-12-summary.md) distingue los 17 AC validados por
+E2E o capacidad/documentación de 3 parciales, sin afirmar paridad AWS.
+El handoff conserva identidad y flujo CD, pero exige diseñar IAM/OIDC,
+compute, red y storage. Una Fase 13 de AWS real es opcional y no implementada.
+
 # Arquitectura actual
 
 ```text
@@ -904,6 +935,7 @@ Windows / GET read-only       |
 - Fase 9 — Production Readiness y despliegue: cerrada.
 - Fase 10 — Integración GitHub Actions: cerrada y archivada como ejemplo.
 - Fase 11 — MiniStack CD Demo Local: cierre E2E documentado, con límites y verificaciones pendientes explícitos.
+- Fase 12 — AWS emulado: cierre E2E A–H documentado; ECR + Compose, con AC11/AC16/AC18 parciales y sin AWS real.
 
 La plataforma actual puede recibir un requerimiento, planificar, implementar,
 validar, reparar, usar conocimiento durable, persistir y reanudar estado,
